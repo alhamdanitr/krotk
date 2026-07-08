@@ -94,7 +94,7 @@ object SecurityApiService {
             val mac = Mac.getInstance("HmacSHA256")
             mac.init(keySpec)
             val bytes = mac.doFinal(data.toByteArray(Charsets.UTF_8))
-            bytes.joinToString("") { String.format("%02X", it) }
+            bytes.joinToString("") { String.format("%02X", it.toInt() and 0xFF) }
         } catch (e: Exception) {
             "SIGN_ERROR"
         }
@@ -196,7 +196,7 @@ object SecurityApiService {
         try {
             val digest = MessageDigest.getInstance("SHA-256")
             val hashBytes = digest.digest(raw.toByteArray(Charsets.UTF_8))
-            val expectedHash = hashBytes.joinToString("") { String.format("%02X", it) }.take(6)
+            val expectedHash = hashBytes.joinToString("") { String.format("%02X", it.toInt() and 0xFF) }.take(6)
 
             if (signatureHash == expectedHash) {
                 callback(true, "تم تفعيل التطبيق بنجاح في الوضع الآمن دون إنترنت! 🔑")
