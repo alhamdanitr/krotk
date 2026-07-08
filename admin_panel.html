@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة إدارة الترخيص الآمن | كروتك</title>
+    <!-- Tailwind CSS for modern responsive visual cards -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for premium professional Arabic typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #080C14;
+            background-image: radial-gradient(circle at 10% 20%, rgba(233, 30, 99, 0.04) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(156, 39, 176, 0.04) 0%, transparent 40%);
+        }
+        /* Custom scrollbar for visual integration */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0D1321;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #E91E63;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between">
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row gap-4 justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-gradient-to-tr from-pink-600 to-purple-600 rounded-xl shadow-lg shadow-pink-900/20 animate-pulse">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black text-white flex items-center gap-2">
+                        بوابة تراخيص كروتك <span class="text-[10px] bg-rose-500/10 text-rose-400 font-extrabold px-2.5 py-0.5 rounded-full border border-rose-500/20">خارجية مستقلة 🛡️</span>
+                    </h1>
+                    <p class="text-[11px] text-slate-400">توليد وتشفير سيريالات التفعيل المقيدة بالهاردوير (Device-Bound Security)</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <!-- API Gateway Target Configuration -->
+                <div class="flex items-center gap-2 bg-slate-950/60 border border-slate-800 px-3 py-1.5 rounded-xl">
+                    <span class="text-[10px] text-slate-400 font-bold">بوابة الـ API:</span>
+                    <input type="text" id="apiEndpointInput" value="http://localhost:3000" class="bg-transparent text-xs font-mono font-bold text-emerald-400 outline-none w-36" placeholder="رابط السيرفر">
+                </div>
+                
+                <button id="logoutBtn" onclick="logout()" class="hidden text-xs bg-slate-800 hover:bg-rose-950/40 text-rose-400 px-3 py-2 rounded-xl transition-all border border-rose-500/10 font-bold">
+                    تسجيل الخروج 🚪
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Administrative Login Panel -->
+    <div id="loginSection" class="max-w-md w-full mx-auto px-4 py-12 flex-grow flex flex-col justify-center">
+        <div class="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-8 backdrop-blur-md shadow-2xl relative">
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-pink-600/10 rounded-full blur-3xl"></div>
+            
+            <div class="text-center mb-6">
+                <span class="text-[10px] font-bold bg-pink-500/10 text-pink-400 px-3 py-1 rounded-full border border-pink-500/10 uppercase tracking-widest">
+                    لوحة مدير النظام
+                </span>
+                <h2 class="text-2xl font-black text-white mt-3">تأكيد الهوية الأمنية</h2>
+                <p class="text-xs text-slate-400 mt-1">الرجاء إدخال بيانات حساب الموزع الرئيسي لفتح اللوحة</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1.5 mr-1">اسم المستخدم</label>
+                    <input type="text" id="adminUser" placeholder="admin" class="w-full bg-slate-950/80 border border-slate-800 text-sm text-white rounded-xl px-4 py-3 font-bold placeholder:text-slate-600 outline-none focus:border-pink-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1.5 mr-1">كلمة المرور</label>
+                    <input type="password" id="adminPass" placeholder="••••••••" class="w-full bg-slate-950/80 border border-slate-800 text-sm text-white rounded-xl px-4 py-3 font-bold placeholder:text-slate-600 outline-none focus:border-pink-500 transition-all">
+                </div>
+
+                <button onclick="loginAdmin()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-extrabold py-3 px-6 rounded-xl shadow-lg transition-all active:scale-95 mt-4">
+                    دخول آمن للمشرفين 🔑
+                </button>
+            </div>
+            
+            <div class="text-center mt-6 text-[11px] text-slate-500">
+                ملاحظة: اللوحة محمية أمنياً ضد الوصول غير المصرح به.
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Administrative Dashboard Area (Hidden before Login) -->
+    <main id="dashboardSection" class="hidden max-w-7xl w-full mx-auto px-4 py-8 flex-grow flex flex-col lg:flex-row gap-8">
+        
+        <!-- Sidebar Controls & Add Serial Form -->
+        <div class="w-full lg:w-1/3 flex flex-col gap-6">
+            
+            <!-- Generate Serial Widget Card -->
+            <div class="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 backdrop-blur-md shadow-xl relative overflow-hidden">
+                <h3 class="text-md font-extrabold text-white mb-4 flex items-center gap-2">
+                    توليد سيريال مخصص جديد 📝
+                </h3>
+                
+                <div class="space-y-4 text-right">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">اسم المشترك:</label>
+                        <input type="text" id="subName" placeholder="مثال: يوسف الكينج" class="w-full bg-slate-950/60 border border-slate-800 text-xs text-white rounded-xl px-3 py-2.5 font-bold outline-none focus:border-pink-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">اسم الشبكة / المؤسسة:</label>
+                        <input type="text" id="subNetwork" placeholder="مثال: شبكة المجد" class="w-full bg-slate-950/60 border border-slate-800 text-xs text-white rounded-xl px-3 py-2.5 font-bold outline-none focus:border-pink-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">رقم الهاتف (لربط السيريال):</label>
+                        <input type="text" id="subPhone" placeholder="مثال: 771234567" class="w-full bg-slate-950/60 border border-slate-800 text-xs text-white rounded-xl px-3 py-2.5 font-bold text-left outline-none focus:border-pink-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">مدة الاشتراك (بالأشهر):</label>
+                        <select id="subDuration" class="w-full bg-slate-950/60 border border-slate-800 text-xs text-white rounded-xl px-3 py-2.5 font-bold outline-none focus:border-pink-500">
+                            <option value="1">شهر واحد (1)</option>
+                            <option value="3">3 أشهر</option>
+                            <option value="6">6 أشهر</option>
+                            <option value="12" selected>سنة كاملة (12 شهر)</option>
+                            <option value="24">سنتين (24 شهر)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">ملاحظات إضافية:</label>
+                        <textarea id="subNotes" placeholder="ملاحظات حول هذا العميل..." class="w-full h-16 bg-slate-950/60 border border-slate-800 text-xs text-white rounded-xl px-3 py-2 font-bold outline-none focus:border-pink-500 resize-none"></textarea>
+                    </div>
+
+                    <button onclick="createSerial()" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-extrabold text-xs py-3 px-4 rounded-xl shadow-md active:scale-95 transition-all flex items-center justify-center gap-2">
+                        إنشاء وتشفير الترخيص 🔐
+                    </button>
+                </div>
+            </div>
+
+            <!-- Server Integrity Logs Stream -->
+            <div class="bg-slate-900/20 border border-slate-850 rounded-3xl p-5 backdrop-blur-sm">
+                <h3 class="text-xs font-black text-slate-400 mb-3 flex items-center gap-1.5">
+                    سجل الرصد الأمني التلقائي (Audit logs) 🛡️
+                </h3>
+                
+                <div id="logStream" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    <p class="text-[10px] text-slate-500 text-center py-4">في انتظار ورود أي طلب تفعيل من الهواتف...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Serials List Management Area -->
+        <div class="w-full lg:w-2/3 flex flex-col gap-6">
+            
+            <!-- Filtering & Search -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-between items-center bg-slate-900/30 border border-slate-800/60 p-4 rounded-2xl">
+                <div class="relative w-full sm:w-72">
+                    <input type="text" id="searchBar" oninput="renderSerials()" placeholder="البحث باسم المشترك أو الهاتف..." class="w-full bg-slate-950/80 border border-slate-800 text-xs text-white rounded-xl px-4 py-2.5 outline-none focus:border-pink-500">
+                </div>
+                
+                <div class="flex gap-2 w-full sm:w-auto overflow-x-auto">
+                    <button onclick="setFilter('ALL')" class="filter-btn active text-[10px] font-bold bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-all">الكل</button>
+                    <button onclick="setFilter('ACTIVE')" class="filter-btn text-[10px] font-bold bg-slate-900 text-slate-400 px-3 py-1.5 rounded-lg border border-slate-800 transition-all">فعال ✔</button>
+                    <button onclick="setFilter('REVOKED')" class="filter-btn text-[10px] font-bold bg-slate-900 text-slate-400 px-3 py-1.5 rounded-lg border border-slate-800 transition-all">ملغي 🚫</button>
+                    <button onclick="setFilter('UNUSED')" class="filter-btn text-[10px] font-bold bg-slate-900 text-slate-400 px-3 py-1.5 rounded-lg border border-slate-800 transition-all">غير مستخدم</button>
+                </div>
+            </div>
+
+            <!-- List Content -->
+            <div class="bg-slate-900/10 border border-slate-850 rounded-3xl p-6 min-h-[400px]">
+                <div class="flex justify-between items-center mb-4 border-b border-slate-800/80 pb-3">
+                    <span class="text-xs text-slate-400 font-bold" id="serialCount">الإجمالي: 0 ترخيص</span>
+                    <h3 class="text-md font-black text-white">قائمة السيريالات والتراخيص النشطة 📂</h3>
+                </div>
+
+                <div id="serialsContainer" class="space-y-4">
+                    <p class="text-xs text-slate-500 text-center py-12">تحميل البيانات من الخادم...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950/80 py-4 text-center text-xs text-slate-500 mt-8">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row gap-2 justify-between items-center text-slate-500 text-[11px]">
+            <div>جميع الحقوق محفوظة &copy; 2026 لمجموعة <span class="font-bold text-slate-400">كيان سوفت</span> للحلول البرمجية المتكاملة.</div>
+            <div class="flex items-center gap-3">
+                <span>تطوير: <a href="tel:773303455" class="text-rose-400 hover:underline font-bold">773303455</a></span>
+                <span>•</span>
+                <span>نسخة التراخيص المستقلة v1.2</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let adminToken = localStorage.getItem("ks_admin_token") || "";
+        let currentFilter = "ALL";
+        let localState = { clients: [], serials: [], logs: [] };
+
+        function getApiUrl() {
+            let url = document.getElementById("apiEndpointInput").value.trim();
+            if ((!url || url.startsWith("http://localhost")) && window.location.origin && !window.location.origin.includes("localhost")) {
+                url = window.location.origin;
+                document.getElementById("apiEndpointInput").value = url;
+            }
+            return url || window.location.origin || "http://localhost:3000";
+        }
+
+        // Initialize state view
+        window.onload = function() {
+            let apiInput = document.getElementById("apiEndpointInput");
+            if (apiInput) {
+                apiInput.value = window.location.origin;
+            }
+            
+            const savedToken = localStorage.getItem("ks_admin_token");
+            if (savedToken) {
+                adminToken = savedToken;
+                showDashboard();
+            } else {
+                showLogin();
+            }
+        };
+
+        function showLogin() {
+            document.getElementById("loginSection").classList.remove("hidden");
+            document.getElementById("dashboardSection").classList.add("hidden");
+            document.getElementById("logoutBtn").classList.add("hidden");
+        }
+
+        function showDashboard() {
+            document.getElementById("loginSection").classList.add("hidden");
+            document.getElementById("dashboardSection").classList.remove("hidden");
+            document.getElementById("logoutBtn").classList.remove("hidden");
+            fetchDashboardData();
+            if (!window.pollingInterval) {
+                window.pollingInterval = setInterval(fetchDashboardData, 6000);
+            }
+        }
+
+        function logout() {
+            adminToken = "";
+            localStorage.removeItem("ks_admin_token");
+            if (window.pollingInterval) {
+                clearInterval(window.pollingInterval);
+                window.pollingInterval = null;
+            }
+            showLogin();
+        }
+
+        // Authentication Gateway
+        async function loginAdmin() {
+            const user = document.getElementById("adminUser").value.trim();
+            const pass = document.getElementById("adminPass").value.trim();
+
+            if (!user || !pass) {
+                alert("يرجى ملء كافة حقول المصادقة!");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${getApiUrl()}/api/v1/admin/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    adminToken = data.token;
+                    localStorage.setItem("ks_admin_token", adminToken);
+                    showDashboard();
+                } else {
+                    alert("❌ خطأ: " + data.message);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("❌ فشل الاتصال بسيرفر الـ API التابع لكروتك! تأكد من تشغيله.");
+            }
+        }
+
+        // Fetch entire configuration state
+        async function fetchDashboardData() {
+            if (!adminToken) return;
+
+            try {
+                const response = await fetch(`${getApiUrl()}/api/v1/admin/dashboard`, {
+                    headers: { "Authorization": `Bearer ${adminToken}` }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    logout();
+                    return;
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    localState = data;
+                    renderSerials();
+                    renderLogs();
+                }
+            } catch (e) {
+                console.warn("API Polling connection issues.");
+            }
+        }
+
+        // Render serial keys list
+        function renderSerials() {
+            const container = document.getElementById("serialsContainer");
+            const search = document.getElementById("searchBar").value.toLowerCase();
+            
+            let filteredList = localState.serials.map(serial => {
+                const client = localState.clients.find(c => c.id === serial.client_id) || {};
+                return { ...serial, client };
+            });
+
+            // Apply filter status
+            if (currentFilter !== "ALL") {
+                filteredList = filteredList.filter(s => s.status === currentFilter);
+            }
+
+            // Apply search query
+            if (search) {
+                filteredList = filteredList.filter(s => 
+                    (s.client.name && s.client.name.toLowerCase().includes(search)) ||
+                    (s.client.phone && s.client.phone.includes(search)) ||
+                    s.serial_key.toLowerCase().includes(search)
+                );
+            }
+
+            document.getElementById("serialCount").textContent = `الإجمالي: ${filteredList.length} ترخيص`;
+
+            if (filteredList.length === 0) {
+                container.innerHTML = `
+                    <p class="text-xs text-slate-500 text-center py-12">لم يتم العثور على أي تراخيص مطابقة للتصفية الحالية.</p>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredList.map(item => {
+                let statusBadge = "";
+                if (item.status === "ACTIVE") statusBadge = `<span class="bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/20">فعال ✔</span>`;
+                else if (item.status === "REVOKED") statusBadge = `<span class="bg-rose-500/10 text-rose-400 px-2.5 py-0.5 rounded-full border border-rose-500/20">ملغي 🚫</span>`;
+                else if (item.status === "EXPIRED") statusBadge = `<span class="bg-amber-500/10 text-amber-400 px-2.5 py-0.5 rounded-full border border-amber-500/20">منتهي ⏳</span>`;
+                else statusBadge = `<span class="bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded-full border border-slate-700">غير مستخدم</span>`;
+
+                return `
+                    <div class="bg-slate-900/60 border border-slate-800/70 hover:border-pink-500/20 p-5 rounded-2xl text-right flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all">
+                        <div class="flex flex-wrap gap-2 justify-end">
+                            <!-- Reset HWID Binding -->
+                            <button onclick="resetDeviceLock(${item.id})" class="text-[10px] font-bold bg-slate-950 text-emerald-400 hover:bg-emerald-950/20 border border-emerald-500/20 px-2.5 py-1.5 rounded-lg transition-colors">
+                                إعادة ضبط الهاردوير 🔄
+                            </button>
+                            <!-- Cancel / Revoke -->
+                            <button onclick="toggleSerial(${item.id})" class="text-[10px] font-bold bg-slate-950 ${item.status === 'REVOKED' ? 'text-amber-400 hover:bg-amber-950/20 border border-amber-500/20' : 'text-rose-400 hover:bg-rose-950/20 border border-rose-500/20'} px-2.5 py-1.5 rounded-lg transition-colors">
+                                ${item.status === 'REVOKED' ? 'إعادة تفعيل' : 'إلغاء وتجميد'}
+                            </button>
+                            <!-- Permanent Delete -->
+                            <button onclick="deleteSerial(${item.id})" class="text-[10px] font-bold bg-slate-950 hover:bg-red-950/40 text-red-500 border border-red-500/20 px-2.5 py-1.5 rounded-lg transition-colors">
+                                حذف 🗑️
+                            </button>
+                        </div>
+
+                        <div class="flex-grow">
+                            <div class="flex items-center justify-end gap-2.5 mb-1.5">
+                                ${statusBadge}
+                                <h4 class="text-sm font-extrabold text-white">${item.client.name || 'عميل غير معروف'}</h4>
+                            </div>
+                            <div class="text-[11px] text-slate-400 space-y-1">
+                                <p>الشبكة: <span class="font-bold text-slate-200">${item.client.network_name || '-'}</span> | الهاتف: <span class="font-bold font-mono text-slate-200">${item.client.phone || '-'}</span></p>
+                                <p class="flex items-center justify-end gap-1.5 bg-slate-950/50 px-3 py-1.5 rounded-xl font-mono text-pink-400 font-black mt-2 inline-block select-all">
+                                    <span class="text-[10px] text-slate-500 font-sans font-bold">السيريال:</span>
+                                    ${item.serial_key}
+                                </p>
+                                <p class="mt-2 text-slate-500">الجهاز المقفل: <code class="text-pink-300 font-mono text-[10px]">${item.device_id || 'لم يُربط بهاتف بعد (بانتظار التنشيط)'}</code></p>
+                                <p class="text-[9px] text-slate-500">بداية: ${item.start_date} | انتهاء: ${item.end_date} (${item.duration_months} شهر)</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render logs stream
+        function renderLogs() {
+            const container = document.getElementById("logStream");
+            if (localState.logs.length === 0) {
+                container.innerHTML = `<p class="text-[10px] text-slate-500 text-center py-4">لا توجد عمليات مسجلة حالياً.</p>`;
+                return;
+            }
+
+            container.innerHTML = localState.logs.map(log => `
+                <div class="bg-slate-950/40 p-2.5 rounded-xl text-right border border-slate-850">
+                    <div class="flex justify-between items-center text-[9px] text-slate-500 font-mono mb-1">
+                        <span>IP: ${log.ip}</span>
+                        <span>${log.timestamp.substring(11, 19)}</span>
+                    </div>
+                    <div class="text-[10px] font-bold text-slate-300 flex justify-between items-center">
+                        <span class="${log.statusCode >= 400 ? 'text-rose-400' : 'text-emerald-400'}">${log.statusCode}</span>
+                        <span>${log.endpoint}</span>
+                    </div>
+                    <p class="text-[9px] text-slate-400 mt-1">${log.message}</p>
+                </div>
+            `).join('');
+        }
+
+        // CRUD: Create Serial and Client
+        async function createSerial() {
+            const name = document.getElementById("subName").value.trim();
+            const network_name = document.getElementById("subNetwork").value.trim();
+            const phone = document.getElementById("subPhone").value.trim();
+            const duration_months = document.getElementById("subDuration").value;
+            const notes = document.getElementById("subNotes").value.trim();
+
+            if (!name || !network_name || !phone) {
+                alert("يرجى تعبئة جميع البيانات المطلوبة!");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${getApiUrl()}/api/v1/admin/serial/create`, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({ name, network_name, phone, duration_months, notes })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert("🔑 تم تشفير وحفظ السيريال نمبر بنجاح:\n" + data.serial.serial_key);
+                    // Clear fields
+                    document.getElementById("subName").value = "";
+                    document.getElementById("subNetwork").value = "";
+                    document.getElementById("subPhone").value = "";
+                    document.getElementById("subNotes").value = "";
+                    fetchDashboardData();
+                } else {
+                    alert("⚠️ خطأ: " + data.message);
+                }
+            } catch (e) {
+                alert("❌ حدث خطأ أثناء الاتصال بالخادم.");
+            }
+        }
+
+        // Actions: Toggle status (Revoke/Activate)
+        async function toggleSerial(id) {
+            try {
+                const response = await fetch(`${getApiUrl()}/api/v1/admin/serial/toggle/${id}`, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${adminToken}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    fetchDashboardData();
+                }
+            } catch (e) {
+                alert("فشل تنفيذ الإجراء.");
+            }
+        }
+
+        // Actions: Reset Device HWID Binding
+        async function resetDeviceLock(id) {
+            if (!confirm("هل أنت متأكد من رغبتك في فك قفل الهاردوير؟ سيتمكن المشترك من تفعيل التطبيق على هاتف جديد.")) return;
+            try {
+                const response = await fetch(`${getApiUrl()}/api/v1/admin/serial/reset/${id}`, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${adminToken}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert("✔ تم فك قفل الهاردوير بنجاح!");
+                    fetchDashboardData();
+                }
+            } catch (e) {
+                alert("فشل فك قفل الهاردوير.");
+            }
+        }
+
+        // Actions: Delete
+        async function deleteSerial(id) {
+            if (!confirm("⚠️ هل أنت متأكد تماماً من حذف هذا الترخيص والعميل نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.")) return;
+            try {
+                const response = await fetch(`${getApiUrl()}/api/v1/admin/serial/delete/${id}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${adminToken}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    fetchDashboardData();
+                }
+            } catch (e) {
+                alert("فشل حذف الترخيص.");
+            }
+        }
+
+        // Filtering Tab Selection
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll(".filter-btn").forEach(btn => {
+                btn.classList.remove("active", "bg-slate-800", "text-slate-300");
+                btn.classList.add("bg-slate-900", "text-slate-400");
+            });
+            event.target.classList.add("active", "bg-slate-800", "text-slate-300");
+            event.target.classList.remove("bg-slate-900", "text-slate-400");
+            renderSerials();
+        }
+    </script>
+</body>
+</html>

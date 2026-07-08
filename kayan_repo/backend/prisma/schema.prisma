@@ -1,0 +1,346 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// SUPER ADMIN & SAAS MANAGEMENT (الطبقة الإدارية ونظام الـ SaaS)
+// -----------------------------------------------------------------------------
+
+model Plan {
+  id               String         @id @default(uuid())
+  name             String         @db.VarChar(50) // e.g., 'Monthly', 'Yearly', 'Lifetime'
+  price            Float          @default(0.0)
+  durationDays     Int            @map("duration_days") // e.g., 30, 365, 36500 (lifetime)
+  maxUsers         Int            @default(1) @map("max_users")
+  features         String?        @db.Text
+  isActive         Boolean        @default(true) @map("is_active")
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  subscriptions    Subscription[]
+  activationKeys   ActivationKey[]
+
+  @@map("plans")
+}
+
+model ActivationKey {
+  id               String         @id @default(uuid())
+  serialKey        String         @unique @map("serial_key") @db.VarChar(100)
+  activationCode   String         @map("activation_code") @db.VarChar(100)
+  planId           String         @map("plan_id")
+  isUsed           Boolean        @default(false) @map("is_used")
+  usedAt           DateTime?      @map("used_at")
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  plan             Plan           @relation(fields: [planId], references: [id])
+  tenant           Tenant?        // One-to-one relation after activation
+
+  @@map("activation_keys")
+}
+
+model Subscription {
+  id               String         @id @default(uuid())
+  tenantId         String         @unique @map("tenant_id")
+  planId           String         @map("plan_id")
+  startDate        DateTime       @default(now()) @map("start_date")
+  expiryDate       DateTime       @map("expiry_date")
+  status           String         @default("active") @db.VarChar(20) // active, expired, suspended
+
+  tenant           Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan             Plan           @relation(fields: [planId], references: [id])
+
+  @@map("subscriptions")
+}
+
+// -----------------------------------------------------------------------------
+// TENANT DATA (بيانات العميل المستقلة - Multi-Tenant Isolation)
+// -----------------------------------------------------------------------------
+
+model Tenant {
+  id               String         @id @default(uuid())
+  name             String         @map("name") @db.VarChar(100) // Shop/Network name
+  logo             String?        @db.Text // Optional logo URL or base64
+  country          String         @default("Yemen") @db.VarChar(50)
+  currency         String         @default("YER") @db.VarChar(10)
+  activationKeyId  String?        @unique @map("activation_key_id")
+  status           String         @default("trial") @db.VarChar(20) // trial, active, suspended
+  trialStartDate   DateTime?      @map("trial_start_date")
+  trialEndDate     DateTime?      @map("trial_end_date")
+  isActive         Boolean        @default(true) @map("is_active")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  activationKey    ActivationKey? @relation(fields: [activationKeyId], references: [id])
+  subscription     Subscription?
+  
+  settings         Settings?
+  users            User[]
+  cards            Card[]
+  categories       Category[]
+  deposits         Deposit[]
+  transactions     Transaction[]
+  pendingApprovals PendingApproval[]
+  customerMappings CustomerMapping[]
+  walletConfigs    WalletConfig[]
+  smsTemplates     SmsTemplate[]
+
+  // Distributor Relations
+  distributorPricings  DistributorPricing[]
+  distributorCustomers DistributorCustomer[]
+  distributorSales     DistributorSale[]
+  distributorPayments  DistributorPayment[]
+  distributorExpenses  DistributorExpense[]
+  distributorCapitals  DistributorCapital[]
+
+  @@map("tenants")
+}
+
+model User {
+  id               String         @id @default(uuid())
+  tenantId         String?        @map("tenant_id") // Null for Super Admin
+  username         String         @unique @db.VarChar(100)
+  passwordHash     String         @map("password_hash") @db.VarChar(255)
+  role             String         @default("tenant_admin") @db.VarChar(20) // super_admin, tenant_admin, operator
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  tenant           Tenant?        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("users")
+}
+
+model Settings {
+  tenantId         String   @id @map("tenant_id")
+  autoSendSms      Boolean  @default(true) @map("auto_send_sms")
+  networkName      String   @default("Kurotek") @map("network_name") @db.VarChar(50)
+  cardFormatMode   String   @default("code_only") @map("card_format_mode") @db.VarChar(20)
+  
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("settings")
+}
+
+model Category {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  value            Int
+  
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cards            Card[]
+
+  @@map("categories")
+}
+
+model Card {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  categoryId       String   @map("category_id")
+  categoryValue    Int      @map("category_value")
+  code             String   @db.Text
+  username         String?  @db.VarChar(255)
+  password         String?  @db.VarChar(255)
+  isUsed           Boolean  @default(false) @map("is_used")
+  usedAt           DateTime? @map("used_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category         Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, categoryValue, isUsed])
+  @@map("cards")
+}
+
+model Deposit {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  idempotencyKey   String?  @unique @map("idempotency_key") @db.VarChar(64) // SHA256 hash لمنع التكرار
+  senderPhone      String   @map("sender_phone") @db.VarChar(50)
+  senderCode       String?  @map("sender_code") @db.VarChar(100) // الكود الوهمي قبل التحويل
+  amount           Int
+  walletType       String   @map("wallet_type") @db.VarChar(30)
+  isShared         Boolean  @default(false) @map("is_shared")
+  rawSmsText       String?  @map("raw_sms_text") @db.Text
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  transaction      Transaction?
+  pendingApproval  PendingApproval?
+
+  @@index([tenantId, createdAt]) // للتقارير
+  @@index([tenantId, walletType]) // لتصفية حسب المحفظة
+  @@map("deposits")
+}
+
+model Transaction {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  depositId        String?  @unique @map("deposit_id")
+  cardId           String?  @map("card_id") // حقل حيوي: يربط المعاملة بالكرت المصروف
+  amount           Int
+  recipientPhone   String   @map("recipient_phone") @db.VarChar(50)
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deposit          Deposit? @relation(fields: [depositId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt]) // للتقارير اليومية والشهرية
+  @@map("transactions")
+}
+
+model PendingApproval {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  depositId        String   @unique @map("deposit_id")
+  isAccountCode    Boolean  @default(false) @map("is_account_code")
+  status           String   @default("pending") @db.VarChar(20)
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deposit          Deposit  @relation(fields: [depositId], references: [id], onDelete: Cascade)
+
+  @@map("pending_approvals")
+}
+
+model CustomerMapping {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  customerUniqueId String   @map("customer_unique_id") @db.VarChar(100)
+  basicPhone       String   @map("basic_phone") @db.VarChar(50)
+
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, customerUniqueId])
+  @@map("customer_mappings")
+}
+
+model WalletConfig {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  walletName       String   @map("wallet_name") @db.VarChar(30)
+  regexPattern     String   @map("regex_pattern") @db.Text
+  isEnabled        Boolean  @default(true) @map("is_enabled")
+
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("wallet_configs")
+}
+
+model SmsTemplate {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  templateText     String   @map("template_text") @db.Text
+
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("sms_templates")
+}
+
+// -----------------------------------------------------------------------------
+// DISTRIBUTOR CALCULATOR MODULE (حاسبة الموزع)
+// -----------------------------------------------------------------------------
+
+model DistributorPricing {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  categoryValue  Int      @map("category_value")    // 100, 200, 250, 300, 500
+  cardType       String   @map("card_type")          // REGULAR, PRO
+  buyPrice       Int      @map("buy_price")          // سعر الشراء من المورد
+  sellPrice      Int      @map("sell_price")         // سعر البيع للبقالة
+  isActive       Boolean  @default(true) @map("is_active")
+  
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@unique([tenantId, categoryValue, cardType])
+  @@map("distributor_pricing")
+}
+
+model DistributorCustomer {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  name           String   @db.VarChar(150)
+  phone          String?  @db.VarChar(50)
+  address        String?  @db.Text
+  creditLimit    Int      @default(0) @map("credit_limit")  // حد الائتمان
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sales          DistributorSale[]
+  payments       DistributorPayment[]
+  
+  @@unique([tenantId, name])
+  @@map("distributor_customers")
+}
+
+model DistributorSale {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  customerId     String?  @map("customer_id")
+  categoryValue  Int      @map("category_value")
+  cardType       String   @map("card_type")
+  quantity       Int
+  buyPrice       Int      @map("buy_price")        // سعر الشراء وقت البيع
+  sellPrice      Int      @map("sell_price")       // سعر البيع وقت البيع
+  totalAmount    Int      @map("total_amount")     // sellPrice * quantity
+  profit         Int                                // (sellPrice - buyPrice) * quantity
+  receivedAmount Int      @default(0) @map("received_amount") // المبلغ المقبوض
+  isCredit       Boolean  @default(false) @map("is_credit")   // هل هي ذمة؟
+  notes          String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+  
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer       DistributorCustomer? @relation(fields: [customerId], references: [id])
+  
+  @@index([tenantId, createdAt])
+  @@index([tenantId, customerId])
+  @@map("distributor_sales")
+}
+
+model DistributorPayment {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  customerId     String   @map("customer_id")
+  amount         Int
+  paymentMethod  String   @default("cash") @map("payment_method") @db.VarChar(30)
+  notes          String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+  
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer       DistributorCustomer @relation(fields: [customerId], references: [id])
+  
+  @@index([tenantId, createdAt])
+  @@map("distributor_payments")
+}
+
+model DistributorExpense {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  category       String   @db.VarChar(50)  // وقود، إيجار، رواتب، صيانة، أخرى
+  amount         Int
+  description    String?  @db.Text
+  expenseDate    DateTime @default(now()) @map("expense_date")
+  createdAt      DateTime @default(now()) @map("created_at")
+  
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@index([tenantId, expenseDate])
+  @@map("distributor_expenses")
+}
+
+model DistributorCapital {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  type           String   @db.VarChar(30) // injection (إيداع), withdrawal (سحب)
+  amount         Int
+  description    String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+  
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@index([tenantId, createdAt])
+  @@map("distributor_capital")
+}
+

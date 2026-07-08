@@ -1,0 +1,18 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  images: {
+    unoptimized: true,
+  },
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://kurotek-backend-production.up.railway.app',
+  },
+  output: 'standalone',
+};
+
+export default nextConfig;
