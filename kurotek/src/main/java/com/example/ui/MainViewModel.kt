@@ -14,6 +14,21 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(private val repository: CardRepository) : ViewModel() {
 
+    init {
+        viewModelScope.launch {
+            repository.activeSerialKey.collect { serial ->
+                if (serial.isNotEmpty()) {
+                    Log.d("MainViewModel", "Active serial key found. Starting cloud migration/sync.")
+                    val syncEngine = com.example.network.CloudSyncEngine.getInstance(repository.context)
+                    syncEngine.performFirstTimeMigration { success, msg ->
+                        Log.d("MainViewModel", "First-time cloud migration: success=$success, msg=$msg")
+                        syncEngine.performIncrementalSync()
+                    }
+                }
+            }
+        }
+    }
+
     // Simple session login status
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
@@ -33,9 +48,14 @@ class MainViewModel(private val repository: CardRepository) : ViewModel() {
     val isAutoSendSmsEnabled: StateFlow<Boolean> = repository.isAutoSendSmsEnabled
     val isNotificationClickComposeEnabled: StateFlow<Boolean> = repository.isNotificationClickComposeEnabled
     val approvedSmsTemplates: StateFlow<List<String>> = repository.approvedSmsTemplates
+    val autoApprovedAmounts: StateFlow<List<Int>> = repository.autoApprovedAmounts
 
     fun toggleAutoSendSms(enabled: Boolean) {
         repository.setAutoSendSmsEnabled(enabled)
+    }
+
+    fun updateAutoApprovedAmounts(amounts: List<Int>) {
+        repository.setAutoApprovedAmounts(amounts)
     }
 
     fun toggleNotificationClickCompose(enabled: Boolean) {
@@ -307,6 +327,20 @@ class MainViewModel(private val repository: CardRepository) : ViewModel() {
                 }
             } catch (e: Exception) {
                 Log.e("MainViewModel", "Failed to reject pending", e)
+            }
+        }
+    }
+
+    fun ignorePendingApproval(pendingId: Int) {
+        viewModelScope.launch {
+            try {
+                val pending = repository.getPendingApproval(pendingId)
+                if (pending != null) {
+                    repository.deleteDeposit(pending.depositId)
+                    repository.deletePendingApproval(pendingId)
+                }
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Failed to ignore pending", e)
             }
         }
     }
