@@ -153,7 +153,7 @@ app.post('/api/v1/serial/validate', verifyRequestSignature, (req, res) => {
 
     // Handle Device ID Lock / Binding (First-time Activation)
     if (!serialRecord.device_id) {
-        serialRecord.device_id = deviceId;
+        serialRecord.device_id = deviceId.trim().toUpperCase();
         serialRecord.status = "ACTIVE";
         addLog(clientIp, "/api/v1/serial/validate", 200, `Successfully bound device ${deviceId} to serial ${serial}`);
         return res.json({
@@ -165,7 +165,7 @@ app.post('/api/v1/serial/validate', verifyRequestSignature, (req, res) => {
     }
 
     // If Device ID already exists, reject if they mismatch (Anti-Cloning Device Lock)
-    if (serialRecord.device_id !== deviceId) {
+    if (serialRecord.device_id.trim().toUpperCase() !== deviceId.trim().toUpperCase()) {
         addLog(clientIp, "/api/v1/serial/validate", 403, `Device mismatch block! Registered: ${serialRecord.device_id}, Requesting: ${deviceId}`);
         return res.json({
             success: false,
@@ -236,7 +236,7 @@ app.get('/api/v1/admin/dashboard', authenticateAdmin, (req, res) => {
 
 // Generate and Add a new bound serial key
 app.post('/api/v1/admin/serial/create', authenticateAdmin, (req, res) => {
-    const { name, network_name, phone, duration_months, notes } = req.body;
+    const { name, network_name, phone, duration_months, notes, device_id } = req.body;
 
     if (!name || !network_name || !phone) {
         return res.status(400).json({ success: false, message: "يرجى تعبئة الحقول الإلزامية الاسم، الشبكة، والهاتف!" });
@@ -247,9 +247,10 @@ app.post('/api/v1/admin/serial/create', authenticateAdmin, (req, res) => {
     const newClient = { id: clientId, name, network_name, phone, notes };
     clients.push(newClient);
 
-    // 2. Generate random security checksum for this client phone number
+    // 2. Generate security checksum (bound to Device ID if provided, otherwise fallback to Phone number)
     const salt = "KayanSoftSecureSalt2026";
-    const rawData = phone.trim().toUpperCase() + salt;
+    const bindingValue = (device_id && device_id.trim()) ? device_id.trim().toUpperCase() : phone.trim().toUpperCase();
+    const rawData = bindingValue + salt;
     const hash = crypto.createHash('sha256').update(rawData).digest('hex').substring(0, 6).toUpperCase();
 
     // 3. Unique deterministic serial identifier format: PHONE-KS[HASH]
@@ -265,20 +266,21 @@ app.post('/api/v1/admin/serial/create', authenticateAdmin, (req, res) => {
     const end = new Date();
     end.setMonth(end.getMonth() + parseInt(duration_months || 12));
 
+    const isPreBound = (device_id && device_id.trim()) ? true : false;
     const newSerial = {
         id: serials.length + 1,
         client_id: clientId,
         serial_key: finalSerialKey,
-        device_id: null, // unbound initially
+        device_id: isPreBound ? device_id.trim().toUpperCase() : null, // pre-bound if provided
         duration_months: parseInt(duration_months || 12),
         start_date: start.toISOString().split('T')[0],
         end_date: end.toISOString().split('T')[0],
-        status: "UNUSED",
+        status: isPreBound ? "ACTIVE" : "UNUSED", // active if pre-bound
         notes: notes || ""
     };
     serials.push(newSerial);
 
-    addLog(req.ip, "/api/v1/admin/serial/create", 200, `Generated serial ${finalSerialKey} for client ${name}`);
+    addLog(req.ip, "/api/v1/admin/serial/create", 200, `Generated serial ${finalSerialKey} for client ${name} (Pre-bound Device: ${isPreBound ? device_id : 'No'})`);
     res.json({ success: true, serial: newSerial });
 });
 

@@ -24,9 +24,9 @@ dependencyResolutionManagement {
 
 rootProject.name = "My Application"
 
-// تطبيق إدارة التراخيص (License Manager) هو الآن التطبيق الرئيسي (:app) ليتم بناؤه وتثبيته تلقائياً على المحاكي.
-// تم نقل تطبيق كروتك إلى المجلد (:kurotek) لتسهيل التبديل لاحقاً.
+// تطبيق إدارة التراخيص هو الآن التطبيق الرئيسي (:app) ليتم بناؤه وتثبيته تلقائياً على المحاكي.
 include(":app")
+project(":app").projectDir = file("app")
 
 include(":kurotek")
 project(":kurotek").projectDir = file("kurotek")
