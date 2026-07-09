@@ -12,7 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.androidx.compose.material.icons.automirrored.filled.androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -67,7 +67,7 @@ fun DistributorSystemScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.androidx.compose.material.icons.automirrored.filled.ArrowBack,
+                            imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.androidx.compose.material.icons.automirrored.filled.androidx.compose.material.icons.automirrored.filled.ArrowBack,
                             contentDescription = "رجوع",
                             tint = MaterialTheme.colorScheme.onSurface
                         )

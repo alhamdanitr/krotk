@@ -1,34 +1,20 @@
-import os
 import re
 
-def fix_file(filepath):
-    with open(filepath, 'r', encoding='utf-8') as f:
-        content = f.read()
+path = "kurotek/src/main/java/com/example/ui/MainDashboardScreen.kt"
+with open(path, 'r', encoding='utf-8') as f:
+    c = f.read()
 
-    original = content
-    
-    # Text("...",
-    # instead of text = { Text("...", icon = {
-    # If a line ends with `Text(".*",\n` we probably want to close it.
-    
-    # Actually just replace `Text("توليد الكروت",` with `Text("توليد الكروت")` 
-    content = content.replace('Text("توليد الكروت",\n', 'Text("توليد الكروت")\n')
-    content = re.sub(r'Text\("(.*?)",\s*\n', r'Text("\1")\n', content)
-    
-    # also `Icons.Default.Bolt, contentDescription = null)` -> this is fine
-    
-    if content != original:
-        with open(filepath, 'w', encoding='utf-8') as f:
-            f.write(content)
-        print(f"Fixed {filepath}")
+# 3015: label = { Text(option, -> Text(option)
+c = c.replace('label = { Text(option,\n\ncolors', 'label = { Text(option) },\ncolors')
+c = c.replace('label = { Text(option, \n\ncolors', 'label = { Text(option) },\ncolors')
 
-def main():
-    dirs = ['kurotek/src/main/java/com/example', 'kayan_repo/mobile/app/src/main/java/com/example']
-    for d in dirs:
-        for root, _, files in os.walk(d):
-            for file in files:
-                if file.endswith('.kt'):
-                    fix_file(os.path.join(root, file))
+# 3070, 3081: OutlinedTextField weird Text issue
+# The error was: 3070:26 Unresolved reference 'MaterialTheme'. 
+# Because I replaced ` MaterialTheme.colorScheme.primary))` with `)` but it messed up something?
+# Let's fix missing closing parens on FilterChip
+c = c.replace(') {                                Text(if (option == "جيب") "محفظة كاش" else option,', ') {\n                                Text(if (option == "جيب") "محفظة كاش" else option)')
 
-if __name__ == '__main__':
-    main()
+
+with open(path, 'w', encoding='utf-8') as f:
+    f.write(c)
+

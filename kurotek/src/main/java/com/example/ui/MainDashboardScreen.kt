@@ -26,7 +26,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -50,7 +49,6 @@ import java.util.*
 import android.net.Uri
 import android.content.Intent
 import androidx.core.content.FileProvider
-import com.example.utils.DocumentExporter
 import java.io.File
 import java.nio.charset.StandardCharsets
 import android.util.Log
@@ -67,54 +65,6 @@ fun MainDashboardScreen(
     val allPendingApprovals by viewModel.allPendingApprovals.collectAsState()
 
     var activeEventNotification by remember { mutableStateOf<com.example.utils.NotificationBus.NewCardExtractedEvent?>(null) }
-    var isCenterMenuOpen by remember { mutableStateOf(false) }
-    var currentSubScreen by remember { mutableStateOf<String?>(null) } // "distributor", "mikrotik", null
-    var distributorInitialTab by remember { mutableStateOf(0) }
-    var showExitConfirmDialog by remember { mutableStateOf(false) }
-
-    // Intercept system Back Press
-    androidx.activity.compose.BackHandler(enabled = true) {
-        if (currentSubScreen != null) {
-            currentSubScreen = null
-        } else if (selectedTab != 0) {
-            selectedTab = 0
-        } else {
-            showExitConfirmDialog = true
-        }
-    }
-
-    if (showExitConfirmDialog) {
-        AlertDialog(
-            onDismissRequest = { showExitConfirmDialog = false },
-            title = {
-                Text(
-                    text = "تأكيد الخروج ⚠️",
-                    color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth()
-                )
-            },
-            text = {
-                Text(
-                    text = "هل تريد الخروج من التطبيق بالفعل؟",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth()
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showExitConfirmDialog = false
-                        (context as? android.app.Activity)?.finish()
-                    }) {
-                    Text("نعم", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showExitConfirmDialog = false }
-                ) {
-                    Text("إلغاء", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
-                }
-            },
-    }
 
     LaunchedEffect(Unit) {
         com.example.utils.NotificationBus.newCardExtractedEvents.collect { event ->
@@ -122,341 +72,128 @@ fun MainDashboardScreen(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        if (currentSubScreen == "distributor") {
-            DistributorSystemScreen(
-                viewModel = viewModel,
-                initialTab = distributorInitialTab,
-                onBack = { currentSubScreen = null }
-            )
-        } else if (currentSubScreen == "mikrotik") {
-            MikrotikGeneratorScreen(
-                viewModel = viewModel,
-                onBack = { currentSubScreen = null }
-            )
-        } else {
-            Scaffold(
-            bottomBar = {
-                // Beautiful Custom Bottom Bar matching the screenshots (4 tabs + floating central button)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(68.dp)
-                        .testTag("dashboard_bottom_nav"),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    // White background card with top rounded corners
-                    Surface(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        tonalElevation = 0.dp,
-                        shadowElevation = 16.dp, modifier = Modifier.fillMaxSize()
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Left-most Tab: الملف (Settings)
-                            BottomNavItem(
-                                selected = selectedTab == 5,
-                                onClick = {
-                                    isCenterMenuOpen = false
-                                    selectedTab = 5
-                                },
-                                icon = Icons.Outlined.Person,
-                                selectedIcon = Icons.Filled.Person,
-                                label = "الملف"
-                            )
-
-                            // Left-middle Tab: التقارير (Reports)
-                            BottomNavItem(
-                                selected = selectedTab == 4,
-                                onClick = {
-                                    isCenterMenuOpen = false
-                                    selectedTab = 4
-                                },
-                                icon = Icons.Outlined.FormatListBulleted,
-                                selectedIcon = Icons.Filled.FormatListBulleted,
-                                label = "التقارير"
-                            )
-
-                            // Center Spacer to leave room for the Central Floating Button (distributed evenly)
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight()
-                            )
-
-                            // Right-middle Tab: الخدمات (Services)
-                            BottomNavItem(
-                                selected = selectedTab == 1,
-                                onClick = {
-                                    isCenterMenuOpen = false
-                                    selectedTab = 1
-                                },
-                                icon = Icons.Outlined.ShoppingBag,
-                                selectedIcon = Icons.Filled.ShoppingBag,
-                                label = "الخدمات"
-                            )
-
-                            // Right-most Tab: الرئيسية (Home)
-                            BottomNavItem(
-                                selected = selectedTab == 0,
-                                onClick = {
-                                    isCenterMenuOpen = false
-                                    selectedTab = 0
-                                },
-                                icon = Icons.Outlined.Home,
-                                selectedIcon = Icons.Filled.Home,
-                                label = "الرئيسية"
-                            )
-                        }
-                    }
-
-                    // Circular Floating Center Menu Button (diameter 64dp, half protruding)
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .offset(y = (-32).dp)
-                            .size(64.dp)
-                            .shadow(elevation = 12.dp)
-                            .background(
-                                color = if (isCenterMenuOpen) MaterialTheme.colorScheme.secondaryContainer)
-                            .clickable { isCenterMenuOpen = !isCenterMenuOpen },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = if (isCenterMenuOpen) Icons.Default.Close else Icons.Filled.KeyboardDoubleArrowUp,
-                            contentDescription = "القائمة",
-                            tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            }
-) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
+    Scaffold(
+        bottomBar = {
+            NavigationBar(
+                tonalElevation = 8.dp, modifier = Modifier.testTag("dashboard_bottom_nav")
             ) {
-                when (selectedTab) {
-                    0 -> HomeTab(
-                        viewModel = viewModel,
-                        onNavigateToSubScreen = { screen ->
-                            if (screen.startsWith("distributor")) {
-                                distributorInitialTab = when (screen) {
-                                    "distributor_debts" -> 1
-                                    "distributor_expenses" -> 2
-                                    else -> 0
-                                }
-                                currentSubScreen = "distributor"
-                            } else {
-                                currentSubScreen = screen
-                            }
-                        },
-                        onNavigateToTab = { selectedTab = it }
+                // Tab 0: الرئيسية (Home)
+                NavigationBarItem(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    icon = { Icon(Icons.Outlined.Home, contentDescription = "الرئيسية") },
+                    label = { Text("الرئيسية") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
+                        selectedTextColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
+                        indicatorColor = if (isDarkTheme) Color(0xFFFF4081).copy(alpha = 0.15f).copy(alpha = 0.12f),
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    1 -> CardsTab(viewModel = viewModel)
-                    2 -> PendingApprovalsTab(viewModel = viewModel)
-                    3 -> SpecialCustomersTab(viewModel = viewModel)
-                    4 -> ReportsTab(viewModel = viewModel)
-                    5 -> SettingsTab(viewModel = viewModel, onLogout = onLogout)
-                }
+                )
+ 
+                // Tab 1: الكروت (Cards)
+                NavigationBarItem(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    icon = { Icon(Icons.Outlined.Wifi, contentDescription = "الكروت") },
+                    label = { Text("الكروت") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
+                        selectedTextColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
+                        indicatorColor = if (isDarkTheme) Color(0xFFFF4081).copy(alpha = 0.15f).copy(alpha = 0.12f),
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+
+                // Tab 2: التفويضات المعلقة (Pending Approvals)
+                NavigationBarItem(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    icon = {
+                        BadgedBox(
+                            badge = {
+                                if (allPendingApprovals.isNotEmpty()) {
+                                    Badge(
+                                    ) {
+                                        Text(allPendingApprovals.size.toString())
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(Icons.Outlined.Done, contentDescription = "التفويضات")
+                        }
+                    },
+                    label = { Text("التفويضات") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
+                        selectedTextColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
+                        indicatorColor = if (isDarkTheme) Color(0xFFFF4081).copy(alpha = 0.15f).copy(alpha = 0.12f),
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+ 
+                // Tab 3: العملاء الاستثنائيين (Special Customers)
+                NavigationBarItem(
+                    selected = selectedTab == 3,
+                    onClick = { selectedTab = 3 },
+                    icon = { Icon(Icons.Outlined.People, contentDescription = "العملاء") },
+                    label = { Text("العملاء") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
+                        selectedTextColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
+                        indicatorColor = if (isDarkTheme) Color(0xFFFF4081).copy(alpha = 0.15f).copy(alpha = 0.12f),
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+ 
+                // Tab 4: التقارير (Reports)
+                NavigationBarItem(
+                    selected = selectedTab == 4,
+                    onClick = { selectedTab = 4 },
+                    icon = { Icon(Icons.Outlined.Assessment, contentDescription = "التقارير") },
+                    label = { Text("التقارير")
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
+                        selectedTextColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
+                        indicatorColor = if (isDarkTheme) Color(0xFFFF4081).copy(alpha = 0.15f).copy(alpha = 0.12f),
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+ 
+                // Tab 5: الإعدادات (Settings)
+                NavigationBarItem(
+                    selected = selectedTab == 5,
+                    onClick = { selectedTab = 5 },
+                    icon = { Icon(Icons.Outlined.Settings, contentDescription = "الإعدادات") },
+                    label = { Text("الإعدادات") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
+                        selectedTextColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
+                        indicatorColor = if (isDarkTheme) Color(0xFFFF4081).copy(alpha = 0.15f).copy(alpha = 0.12f),
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
             }
         }
-
-        // Animated Central Popover Overlay Menu (matches Screenshot 1's dark 4-card grid overlay)
-        AnimatedVisibility(
-            visible = isCenterMenuOpen,
-            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(), modifier = Modifier.align(Alignment.BottomCenter)
+) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f))
-                    .clickable { isCenterMenuOpen = false },
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                // Overlay Bottom Card
-                Card(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 0.dp)
-                        .clickable(enabled = false) { } // prevent clicks from closing
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Text(
-                            text = "الوصول السريع والخدمات الإضافية",
-                            color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-                        )
-
-                        // 2x2 Action Cards Grid (Exactly like the screenshot grid)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            // Card 1: التفويضات (Approvals)
-                            Card(modifier = Modifier
-                                    .weight(1f)
-                                    .height(100.dp)
-                                    .clickable {
-                                        isCenterMenuOpen = false
-                                        selectedTab = 2
-                                    }
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize().padding(12.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Icon(
-                                            imageVector = Icons.Default.DoneAll,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp)
-                                        )
-                                        if (allPendingApprovals.isNotEmpty()) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .offset(x = 10.dp, y = (-10).dp)
-                                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
-                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                                            ) {
-                                                Text(
-                                                    text = allPendingApprovals.size.toString(),
-                                                    color = MaterialTheme.colorScheme.onSurface,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            }
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "التفويضات المعلقة",
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-
-                            // Card 2: العملاء (Special Customers)
-                            Card(modifier = Modifier
-                                    .weight(1f)
-                                    .height(100.dp)
-                                    .clickable {
-                                        isCenterMenuOpen = false
-                                        selectedTab = 3
-                                    }
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize().padding(12.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.People,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "العملاء الاستثنائيين",
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            // Card 3: إضافة كارت (Add Card quick action)
-                            Card(modifier = Modifier
-                                    .weight(1f)
-                                    .height(100.dp)
-                                    .clickable {
-                                        isCenterMenuOpen = false
-                                        selectedTab = 1 // takes user to cards tab where they can add cards
-                                    }
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize().padding(12.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.AddCard,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "إضافة كروت جديدة",
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-
-                            // Card 4: مزامنة وتحديث (Sync / Refresh action)
-                            Card(modifier = Modifier
-                                    .weight(1f)
-                                    .height(100.dp)
-                                    .clickable {
-                                        isCenterMenuOpen = false
-                                        Toast.makeText(context, "🔄 تم تحديث ومزامنة البيانات مع الأجهزة والرسائل بنجاح!", Toast.LENGTH_SHORT).show()
-                                    }
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize().padding(12.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Sync,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp)
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "تحديث ومزامنة الكروت",
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Large red rounded Close circular floating button matching the bottom layout precisely
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-                                .border(BorderStroke(2.dp), CircleShape)
-                                .clickable { isCenterMenuOpen = false },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "إغلاق",
-                                tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
-                }
+            when (selectedTab) {
+                0 -> HomeTab(viewModel = viewModel)
+                1 -> CardsTab(viewModel = viewModel)
+                2 -> PendingApprovalsTab(viewModel = viewModel)
+                3 -> SpecialCustomersTab(viewModel = viewModel)
+                4 -> ReportsTab(viewModel = viewModel)
+                5 -> SettingsTab(viewModel = viewModel, onLogout = onLogout)
             }
         }
     }
@@ -542,7 +279,7 @@ fun MainDashboardScreen(
                             com.example.utils.SmsSender.launchWalletApp(context, event.walletType, shareMessage)
                             activeEventNotification = null
                         },
-                         MaterialTheme.colorScheme.primary), modifier = Modifier.fillMaxWidth().height(44.dp)
+                         modifier = Modifier.fillMaxWidth().height(44.dp)
                     ) {
                         Text("مشاركة وفتح تطبيق ${event.walletType} 🚀", color = MaterialTheme.colorScheme.onSurface)
                     }
@@ -555,7 +292,7 @@ fun MainDashboardScreen(
                             Toast.makeText(context, "تم نسخ كود الكارت بنجاح! 📋", Toast.LENGTH_SHORT).show()
                             activeEventNotification = null
                         },
-                         MaterialTheme.colorScheme.secondary), modifier = Modifier.fillMaxWidth().height(44.dp)
+                         modifier = Modifier.fillMaxWidth().height(44.dp)
                     ) {
                         Text("نسخ الكود فقط 📋", color = MaterialTheme.colorScheme.onSurface)
                     }
@@ -569,24 +306,18 @@ fun MainDashboardScreen(
                     }
                 }
             },
-            dismissButton = null, modifier = Modifier.border(BorderStroke(1.5.dp), RoundedCornerShape(20.dp))
+            dismissButton = null, modifier = Modifier.border(BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline), RoundedCornerShape(20.dp))
         )
     }
 }
-}
 
+}
 // ==========================================
 // TAB 1: الرئيسية (Home Tab)
 // ==========================================
 @Composable
-fun HomeTab(
-    viewModel: MainViewModel,
-    onNavigateToSubScreen: (String) -> Unit,
-    onNavigateToTab: (Int) -> Unit
-) {
+fun HomeTab(viewModel: MainViewModel) {
     val context = LocalContext.current
-    val isActivated by viewModel.isActivated.collectAsState()
-    val isTrialActive by viewModel.isTrialActive.collectAsState()
     val networkName by viewModel.networkName.collectAsState()
     val totalUnusedCount by viewModel.totalUnusedCount.collectAsState()
     val isDark by viewModel.isDarkTheme.collectAsState()
@@ -599,7 +330,6 @@ fun HomeTab(
     val count500 by viewModel.count500.collectAsState()
     
     val allTransactions by viewModel.allTransactions.collectAsState()
-    val allDeposits by viewModel.allDeposits.collectAsState()
     val todayDateStr = remember { SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) }
     
     // Filter transactions to just show today's movements
@@ -610,561 +340,168 @@ fun HomeTab(
         }
     }
 
-    val todayDeposits = remember(allDeposits) {
-        allDeposits.filter { 
-            val dateFormatted = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(it.createdAt))
-            dateFormatted == todayDateStr
-        }
-    }
-
-    var isBalanceVisible by remember { mutableStateOf(false) }
+    val categoriesList = listOf(
+        Pair(100, count100),
+        Pair(200, count200),
+        Pair(250, count250),
+        Pair(300, count300),
+        Pair(500, count500)
+    )
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.End
     ) {
-        // 1. App Top Header Bar (matches Screenshot 1's top layout)
+        // App top header (Vibrant Gradient Background with Highly Rounded Corners)
         item {
-            Row(
-                modifier = Modifier
+            Card(
+                
+                
+                 0.dp else 6.dp), modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .testTag("app_brand_header")
             ) {
-                // Left Side: Action Notification Bell and Agent/Robot Icons in light circles
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // WhatsApp Developer Contact Button
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .background(Color(0xFF25D366).copy(alpha = 0.15f), CircleShape)
-                            .border(BorderStroke(1.2.dp, Color(0xFF25D366)), CircleShape)
-                            .clickable {
-                                try {
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/967773303455"))
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, "الرجاء تثبيت تطبيق واتساب للتواصل", Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Chat,
-                            contentDescription = "تواصل واتساب مع المطور",
-                            tint = Color(0xFF25D366), modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                    // Notification Bell with Red Badge
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .background(MaterialTheme.colorScheme.surface, CircleShape)
-                            .border(BorderStroke(1.dp), CircleShape)
-                            .clickable {
-                                Toast.makeText(context, "🔔 لا توجد إشعارات جديدة غير مقروءة.", Toast.LENGTH_SHORT).show()
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        BadgedBox(
-                            badge = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .background(Color.Red, CircleShape)
-                                )
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Notifications,
-                                contentDescription = "الإشعارات",
-                                tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-                }
-
-                // Right Side: Greeting (صباح الخير / جارالله)
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = "صباح الخير 👋",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = networkName.ifEmpty { "جارالله" },
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.ExtraBold
-                        )
-                    }
-
-                    // Rounded Avatar Container
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), CircleShape)
-                            .border(BorderStroke(2.dp, MaterialTheme.colorScheme.primary), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = if (networkName.isNotEmpty()) networkName.take(1) else "ج",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-        }
-
-
-
-        // Trial warning/notice banner (if trial is active and not fully activated)
-        if (isTrialActive && !isActivated) {
-            item {
-                Card(modifier = Modifier.fillMaxWidth().clickable {
-                        try {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/967773303455"))
-                            context.startActivity(intent)
-                        } catch (e: Exception) {
-                            Toast.makeText(context, "فشل فتح تطبيق واتساب!", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            horizontalAlignment = Alignment.End
-                        ) {
-                            Text(
-                                text = "الفترة التجريبية المجانية مفعلة ⏳",
-                                color = Color(0xFFFF4081),
-                                textAlign = TextAlign.Right
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            val remainingDays = viewModel.getRemainingTrialDays()
-                            Text(
-                                text = "متبقي لديك $remainingDays أيام لتجربة التطبيق مجاناً. اضغط هنا للتواصل مع المطور لشراء السيريال والتنشيط الدائم.",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                lineHeight = 16.sp
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.Outlined.Timer,
-                            contentDescription = "مؤقت التجربة",
-                            tint = Color(0xFFFF4081), modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            }
-        }
-
-        // 2. Beautiful Professional Daily Dashboard
-        item {
-            val totalCardsSoldToday = todayTransactions.size
-            val totalSoldAmountToday = todayTransactions.sumOf { it.amount }
-            val totalDepositsToday = todayDeposits.sumOf { it.amount }
-            val totalOperationsToday = totalCardsSoldToday + todayDeposits.size
-
-            Card( // Deep luxury space blue surface, modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .testTag("app_dashboard_card")
-            ) {
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(18.dp),
-                    horizontalAlignment = Alignment.End
+                        .background(Color(0xFFFFD700))
+                        .padding(20.dp)
                 ) {
-                    // Header inside card
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Refresh timestamp
-                        val formatter = remember { java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault()) }
-                        val lastUpdateStr = remember(todayTransactions, todayDeposits) {
-                            formatter.format(java.util.Date())
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Sync,
-                                contentDescription = null,
-                                tint = Color(0xFF10B981), // Emerald Green
-                                modifier = Modifier.size(12.dp)
-                            )
+                        Column(horizontalAlignment = Alignment.Start) {
                             Text(
-                                text = "تحديث تلقائي: $lastUpdateStr",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                                text = "إجمالي الكروت بمخزونك 📦",
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                                 fontWeight = FontWeight.Bold
                             )
+                            Text(
+                                text = "$totalUnusedCount كارت",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.ExtraBold
+                            )
                         }
-                        
-                        Text(
-                            text = "لوحة التحكم اليومية 📊",
-                            color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Right
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(14.dp))
-                    
-                    // 2x2 grid layout of metrics
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                DashboardMetricItem(
-                                    title = "إجمالي مبيعات اليوم",
-                                    value = "$totalSoldAmountToday ر.ي",
-                                    icon = Icons.Outlined.Payments,
-                                    iconColor = Color(0xFF34D399) // Emerald
-                                )
-                            }
-                            Box(modifier = Modifier.weight(1f)) {
-                                DashboardMetricItem(
-                                    title = "إيداعات اليوم المستلمة",
-                                    value = "$totalDepositsToday ر.ي",
-                                    icon = Icons.Outlined.AccountBalanceWallet,
-                                    iconColor = Color(0xFF60A5FA) // Blue
-                                )
-                            }
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                DashboardMetricItem(
-                                    title = "كروت مباعة اليوم",
-                                    value = "$totalCardsSoldToday كارت",
-                                    icon = Icons.Outlined.ConfirmationNumber,
-                                    iconColor = Color(0xFFFBBF24) // Gold
-                                )
-                            }
-                            Box(modifier = Modifier.weight(1f)) {
-                                DashboardMetricItem(
-                                    title = "عمليات منُفذة اليوم",
-                                    value = "$totalOperationsToday عملية",
-                                    icon = Icons.Outlined.ReceiptLong,
-                                    iconColor = Color(0xFFA78BFA) // Purple
-                                )
-                            }
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = networkName,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Right
+                            )
+                            Text(
+                                text = "نظام التوزيع والبيع المباشر الذكي",
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                                textAlign = TextAlign.Right
+                            )
                         }
                     }
                 }
             }
         }
 
-        // 3. Services Grid (6 Buttons matching Screenshot 2 precisely)
+        // Title for categories
         item {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(
-                    text = "الخدمات والأنظمة المتكاملة ⚡",
-                    color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Right
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                // Row 1
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    // Service 1: حاسبة الموزع
-                    Card(, modifier = Modifier
-                            .weight(1f)
-                            .height(90.dp)
-                            .clickable { onNavigateToSubScreen("distributor") }
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize().padding(10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(Icons.Default.Calculate, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text("حاسبة الموزع", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    // Service 2: ديون البقالات
-                    Card(, modifier = Modifier
-                            .weight(1f)
-                            .height(90.dp)
-                            .clickable { onNavigateToSubScreen("distributor") }
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize().padding(10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(Icons.Default.Storefront, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text("ديون البقالات", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    // Service 3: توليد كروت
-                    Card(, modifier = Modifier
-                            .weight(1f)
-                            .height(90.dp)
-                            .clickable { onNavigateToSubScreen("mikrotik") }
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize().padding(10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(Icons.Default.Router, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text("توليد كروت", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-
-                // Row 2
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    // Service 4: مخزن الكروت
-                    Card(, modifier = Modifier
-                            .weight(1f)
-                            .height(90.dp)
-                            .clickable { onNavigateToTab(1) }
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize().padding(10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(Icons.Default.Inventory, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text("مخزن الكروت", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    // Service 5: مزامنة SMS
-                    Card(, modifier = Modifier
-                            .weight(1f)
-                            .height(90.dp)
-                            .clickable { onNavigateToTab(2) }
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize().padding(10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(Icons.Default.Sync, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text("مزامنة SMS", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    // Service 6: سندات ومصاريف
-                    Card(, modifier = Modifier
-                            .weight(1f)
-                            .height(90.dp)
-                            .clickable { onNavigateToSubScreen("distributor") }
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize().padding(10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(Icons.Default.AccountBalanceWallet, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text("سندات ومصاريف", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-            }
+            Text(
+                text = "فئات كروت الشحن المتوفرة ⚡",
+                color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                textAlign = TextAlign.Right
+            )
         }
 
-        // 4. Highly Polished 3-column separate card categories grid (Screenshot 2 Quick Actions style)
+        // Grid of Categories (M3 beautiful cards - Corner radius 20dp)
         item {
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "خيارات سريعة وتحديثات",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "فئات كروت الشحن المتوفرة ⚡",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                // Grid 3 columns
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    // Row 1 (F100, F200, F250)
+                val chunkedList = categoriesList.chunked(2)
+                for (rowItems in chunkedList) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        listOf(
-                            Triple(100, count100, Color(0xFFD7CCC8)),
-                            Triple(200, count200, Color(0xFF90CAF9)),
-                            Triple(250, count250, Color(0xFFCE93D8))
-                        ).forEach { (category, count, color) ->
+                        for (item in rowItems) {
+                            val category = item.first
+                            val count = item.second
+                            val categoryColor = when(category) {
+                                100 -> Color(0xFFD7CCC8)
+                                200 -> Color(0xFF90CAF9)
+                                250 -> Color(0xFFCE93D8)
+                                300 -> Color(0xFFA5D6A7)
+                                500 -> Color(0xFFFFCC80)
+                                else -> MaterialTheme.colorScheme.primary
+                            }
+
                             Card(
                                 
-                                 color.copy(alpha = 0.25f) else color.copy(alpha = 0.15f)), modifier = Modifier
+                                 categoryColor.copy(alpha = 0.35f) else categoryColor.copy(alpha = 0.25f)
+                                ),
+                                
+                                 0.dp else 3.dp), modifier = Modifier
                                     .weight(1f)
-                                    .height(102.dp)
                                     .testTag("cat_card_$category")
                             ) {
                                 Column(
-                                    modifier = Modifier.fillMaxSize().padding(10.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.SpaceBetween
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                            .background(color.copy(alpha = 0.1f), CircleShape),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.CardMembership,
-                                            contentDescription = null,
-                                            tint = color, modifier = Modifier.size(16.dp)
-                                        )
-                                    }
                                     Text(
                                         text = "فئة $category ر.ي",
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        color = categoryColor,
                                         fontWeight = FontWeight.Bold
                                     )
+                                    
                                     Text(
-                                        text = "$count كارت",
+                                        text = "$count كرت",
                                         color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.Black
                                     )
+                                    
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(categoryColor.copy(alpha = 0.08f))
+                                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = "نشط بالمستند",
+                                            color = categoryColor,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
-
-                    // Row 2 (F300, F500, Total Stock)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        listOf(
-                            Triple(300, count300, Color(0xFFA5D6A7)),
-                            Triple(500, count500, Color(0xFFFFCC80)),
-                            Triple(0, totalUnusedCount, MaterialTheme.colorScheme.primary) // Total
-                        ).forEach { (category, count, color) ->
-                            val isTotal = category == 0
-                            Card(
-                                
-                                 color.copy(alpha = 0.25f) else color.copy(alpha = 0.15f)), modifier = Modifier
-                                    .weight(1f)
-                                    .height(102.dp)
-                                    .testTag(if (isTotal) "cat_card_total" else "cat_card_$category")
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize().padding(10.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                            .background(color.copy(alpha = 0.1f), CircleShape),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = if (isTotal) Icons.Default.Inventory else Icons.Default.CardMembership,
-                                            contentDescription = null,
-                                            tint = color, modifier = Modifier.size(16.dp)
-                                        )
-                                    }
-                                    Text(
-                                        text = if (isTotal) "إجمالي المخزون" else "فئة $category ر.ي",
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = "$count كارت",
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        fontWeight = FontWeight.Black
-                                    )
-                                }
-                            }
+                        if (rowItems.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
                         }
                     }
                 }
             }
         }
 
-        // 5. Recent Transactions Movements List (Separate Rounded Cards with left-aligned prices and right-aligned category icons)
+        // Title for Today's Transactions
         item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp, bottom = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "اليوم",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = "العمليات وحركة اليوم 🔄",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            Text(
+                text = "حركة عمليات اليوم 🔄",
+                color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                textAlign = TextAlign.Right
+            )
         }
 
+        // Transactions list representation (Today's Operations)
         if (todayTransactions.isEmpty()) {
             item {
-                Card(
-modifier = Modifier.fillMaxWidth()
-) {
+                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1172,7 +509,7 @@ modifier = Modifier.fillMaxWidth()
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "لا توجد عمليات مبيعات أو مزامنة كروت مسجلة لليوم.",
+                            text = "لا توجد حركات مبيعات أو عمليات مسجلة لهذا اليوم حتى الآن.",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
@@ -1182,9 +519,16 @@ modifier = Modifier.fillMaxWidth()
         } else {
             items(todayTransactions) { transaction ->
                 val isSuccess = !transaction.cardCode.contains("غير متوفر") && !transaction.cardCode.contains("فشل") && !transaction.cardCode.contains("تجاهل")
-                Card(, modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("transaction_item_${transaction.id}")
+                Card(
+                    
+                     {
+                            Color(0xFF4CAF50).copy(alpha = 0.25f).copy(alpha = 0.15f)
+                        } else {
+                            MaterialTheme.colorScheme.error.copy(alpha = 0.25f).copy(alpha = 0.15f)
+                        }
+                    ),
+                    
+                     0.dp else 2.dp), modifier = Modifier.fillMaxWidth().testTag("transaction_item_${transaction.id}")
                 ) {
                     Row(
                         modifier = Modifier
@@ -1193,43 +537,36 @@ modifier = Modifier.fillMaxWidth()
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Left: Price details in red or green (following Screenshot 2 style)
-                        Column(horizontalAlignment = Alignment.Start) {
-                            Text(
-                                text = "-${transaction.amount} ر.ي",
-                                color = if (isSuccess) MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(transaction.createdAt)),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        // Date/Time
+                        Text(
+                            text = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(transaction.createdAt)),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Medium
+                        )
 
-                        // Right: Title, client phone, wallet type and category icon
+                        // Operation Details
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
                                     text = "كرت فئة ${transaction.amount} تم بيعه بنجاح",
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    color = if (isSuccess) MaterialTheme.colorScheme.onSurface,
                                     textAlign = TextAlign.Right
                                 )
                                 Text(
-                                    text = "المحفظة: ${transaction.walletType} | العميل: ${transaction.phone}",
+                                    text = "رقم العميل: ${transaction.phone} | المحفظة: ${transaction.walletType}",
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Right
                                 )
                             }
-
-                            // Circular icon container matching screenshot
+                            
                             Box(
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(38.dp)
                                     .background(
-                                        if (isSuccess) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f).copy(alpha = 0.1f),
+                                        if (isSuccess) Color(0xFF4CAF50).copy(alpha = 0.1f).copy(alpha = 0.1f),
                                         CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -1237,7 +574,7 @@ modifier = Modifier.fillMaxWidth()
                                 Icon(
                                     imageVector = if (isSuccess) Icons.Outlined.CheckCircle else Icons.Outlined.Warning,
                                     contentDescription = null,
-                                    tint = if (isSuccess) MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp)
+                                    tint = if (isSuccess) Color(0xFF4CAF50), modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
@@ -1327,8 +664,7 @@ fun CardsTab(viewModel: MainViewModel) {
         // Direct Send Switch (SMS Auto Send)
         item {
             Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier
@@ -1412,8 +748,7 @@ modifier = Modifier.fillMaxWidth()
         if (showAddCardsSection) {
             item {
                 Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth().testTag("add_cards_expanded_panel")
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth().testTag("add_cards_expanded_panel")
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
@@ -1482,7 +817,7 @@ modifier = Modifier.fillMaxWidth().testTag("add_cards_expanded_panel")
                                     .clip(RoundedCornerShape(20.dp))
                                     .background(
                                         if (inputModeBulk) {
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.12f)
                                         } else {
                                             MaterialTheme.colorScheme.background
                                         }
@@ -1515,7 +850,7 @@ contentAlignment = Alignment.Center
                                     .clip(RoundedCornerShape(20.dp))
                                     .background(
                                         if (!inputModeBulk) {
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.12f)
                                         } else {
                                             MaterialTheme.colorScheme.background
                                         }
@@ -1549,8 +884,8 @@ contentAlignment = Alignment.Center
                                 onValueChange = { bulkInputText = it; feedbackMsg = "" },
                                 label = { Text("أدخل الكروت (كرت في كل سطر)") },
                                 placeholder = { Text("أكتب كود الكرت مباشرة أو بالصيغ في كل سطر...") }, modifier = Modifier.fillMaxWidth().height(110.dp).testTag("input_bulk_text"),
-                                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
-                                
+                                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
+                                 MaterialTheme.colorScheme.primary,
                                     focusedContainerColor = MaterialTheme.colorScheme.background,
                                     unfocusedContainerColor = MaterialTheme.colorScheme.background
                                 ))
@@ -1562,7 +897,7 @@ contentAlignment = Alignment.Center
                                     label = { Text("كود كرت الشحن") },
                                     placeholder = { Text("أدخل الكود المميز للكرت هنا") },
                                     singleLine = true, modifier = Modifier.fillMaxWidth().testTag("input_single_code_only"),
-                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
                                      MaterialTheme.colorScheme.primary
 ))
                             } else {
@@ -1572,7 +907,7 @@ contentAlignment = Alignment.Center
                                     label = { Text("اسم المستخدم (Username)") },
                                     placeholder = { Text("أدخل اسم المستخدم للكرت") },
                                     singleLine = true, modifier = Modifier.fillMaxWidth().testTag("input_single_user"),
-                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
                                      MaterialTheme.colorScheme.primary
 ))
 
@@ -1582,7 +917,7 @@ contentAlignment = Alignment.Center
                                     label = { Text("كلمة المرور (Password)") },
                                     placeholder = { Text("أدخل الرقم السري للكرت") },
                                     singleLine = true, modifier = Modifier.fillMaxWidth().testTag("input_single_pass"),
-                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
                                      MaterialTheme.colorScheme.primary
 ))
                             }
@@ -1659,7 +994,7 @@ contentAlignment = Alignment.Center
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(PrimaryRedGradient)
+                                    .background(MaterialTheme.colorScheme.primary)
                                     .padding(horizontal = 16.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -1735,8 +1070,7 @@ contentAlignment = Alignment.Center
         if (filteredCards.isEmpty()) {
             item {
                 Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
                 ) {
                     Box(
                         modifier = Modifier
@@ -1841,8 +1175,7 @@ modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
         // --- 📊 جدول عرض حالة الكروت الشامل 📊 ---
         item {
             Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp)
             ) {
@@ -1886,7 +1219,7 @@ modifier = Modifier
                         label = { Text("ابحث برقم الكرت، المستخدم، أو الكود...") },
                         placeholder = { Text("مثال: 777123...") },
                         singleLine = true, modifier = Modifier.fillMaxWidth(),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
                          MaterialTheme.colorScheme.secondary
 ),
                         
@@ -2206,7 +1539,7 @@ modifier = Modifier
                                 contentAlignment = Alignment.Center
                              ) {
                                 Text(
-                                    text = if (wallet == "جيب") "محفظة كاش" else wallet,
+                                    text = wallet,
                                     color = if (isSelected) Color(0xFFFF9800),
                                     fontWeight = FontWeight.Bold
                                 )
@@ -2233,7 +1566,7 @@ modifier = Modifier
                             showConfirmSellDialog = false
                             cardToConfirmSell = null
                         },
-                         MaterialTheme.colorScheme.primary), modifier = Modifier.fillMaxWidth().height(44.dp)
+                         modifier = Modifier.fillMaxWidth().height(44.dp)
                     ) {
                         Text("بيع ومشاركة عبر تطبيق $selectedShareWallet 🚀", color = MaterialTheme.colorScheme.onSurface)
                     }
@@ -2254,7 +1587,7 @@ modifier = Modifier
                             showConfirmSellDialog = false
                             cardToConfirmSell = null
                         },
-                         MaterialTheme.colorScheme.secondary), modifier = Modifier.fillMaxWidth().height(44.dp)
+                         modifier = Modifier.fillMaxWidth().height(44.dp)
                     ) {
                         Text("بيع ونسخ الكود فقط 📋", color = MaterialTheme.colorScheme.onSurface)
                     }
@@ -2317,7 +1650,7 @@ modifier = Modifier
                 )
 
                 // Card details preview inside sheet
-                Card(, modifier = Modifier.fillMaxWidth()
+                Card(modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
                         modifier = Modifier.padding(14.dp),
@@ -2348,7 +1681,7 @@ modifier = Modifier
                     // Cancel Button
                     Button(
                         onClick = { showDeleteBottomSheet = false; cardToDelete = null },
-                         MaterialTheme.colorScheme.outline), modifier = Modifier.weight(1f).height(46.dp)
+                         modifier = Modifier.weight(1f).height(46.dp)
                     ) {
                         Text("إلغاء", fontWeight = FontWeight.Bold)
                     }
@@ -2483,8 +1816,7 @@ fun ReportsTab(viewModel: MainViewModel) {
         // 📊 Header Statistics Card with segmented wallet sources visualization
         item {
             Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier
                     .fillMaxWidth()
                     .testTag("history_stats_header_card")) {
                 Column(
@@ -2519,8 +1851,7 @@ modifier = Modifier
                     ) {
                         // Total Value Card
                         Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.weight(1.2f)
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.weight(1.2f)
                         ) {
                             Column(
                                 modifier = Modifier.padding(12.dp),
@@ -2542,8 +1873,7 @@ modifier = Modifier.weight(1.2f)
 
                         // Total Count Card
                         Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.weight(1f)
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.weight(1f)
                         ) {
                             Column(
                                 modifier = Modifier.padding(12.dp),
@@ -2642,7 +1972,7 @@ modifier = Modifier.weight(1f)
                             }
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color(0xFF2196F3)))
-                                Text("محفظة كاش: ${(jeebPercentage * 100).toInt()}%", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("جيب: ${(jeebPercentage * 100).toInt()}%", color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
@@ -2663,7 +1993,7 @@ modifier = Modifier.weight(1f)
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(text = "$jeebCount كارت | $jeebValue ر.ي", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                            Text(text = "محفظة كاش", color = Color(0xFF90CAF9), fontWeight = FontWeight.Bold)
+                            Text(text = "محفظة جيب (Jeeb)", color = Color(0xFF90CAF9), fontWeight = FontWeight.Bold)
                         }
 
                         // Jawali Row details
@@ -2715,8 +2045,7 @@ modifier = Modifier.weight(1f)
         // Date input filter section
         item {
             Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -2735,15 +2064,14 @@ modifier = Modifier.fillMaxWidth()
                         label = { Text("أدخل التاريخ للبحث والتصفية (yyyy-MM-dd)") },
                         placeholder = { Text("مثال: ${SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())}") },
                         singleLine = true, modifier = Modifier.fillMaxWidth().testTag("filter_date_input"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface),
-                         MaterialTheme.colorScheme.secondary
-))
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface)
+)
                     
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Today Button with OrangeGoldGradient
+                        // Today Button with Color(0xFFFFD700)
                         Button(
                             onClick = { 
                                 filterDateByFormatted = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) 
@@ -2756,7 +2084,7 @@ modifier = Modifier.fillMaxWidth()
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(OrangeGoldGradient),
+                                    .background(Color(0xFFFFD700)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text("اليوم", fontWeight = FontWeight.Bold)
@@ -2770,118 +2098,9 @@ modifier = Modifier.fillMaxWidth()
                                 cal.add(Calendar.DATE, -1)
                                 filterDateByFormatted = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.time) 
                             },
-                             MaterialTheme.colorScheme.secondary),
-                             MaterialTheme.colorScheme.secondary).copy(alpha = 0.3f)), modifier = Modifier
-                                .weight(1f)
-                                .height(44.dp)
+                             modifier = Modifier.weight(1f).height(44.dp)
                         ) {
                             Text("الأمس", fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "خيارات التصدير والطباعة 🖨️",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth()
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // PDF Button
-                        Button(
-                            onClick = {
-                                val headers = listOf("الرقم", "المحفظة", "القيمة (ر.ي)", "التاريخ", "الحالة")
-                                val rows = filteredTransactions.map { tx ->
-                                    val dateStr = SimpleDateFormat("HH:mm a", Locale.getDefault()).format(Date(tx.createdAt))
-                                    listOf(
-                                        tx.phone.ifEmpty { "بدون رقم" },
-                                        if (tx.walletType == "جيب") "محفظة كاش" else tx.walletType,
-                                        "${tx.amount} ر.ي",
-                                        dateStr,
-                                        "ناجحة"
-                                    )
-                                }
-                                DocumentExporter.exportToPdf(
-                                    context = context,
-                                    fileName = "تقرير_المبيعات",
-                                    title = "تقرير مبيعات الموزع لتاريخ $filterDateByFormatted",
-                                    headers = headers,
-                                    rows = rows
-                                )
-                            }, modifier = Modifier.weight(1f).height(38.dp)
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(Icons.Outlined.PictureAsPdf, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface)
-                                Text("PDF", color = MaterialTheme.colorScheme.onSurface)
-                            }
-                        }
-
-                        // Excel Button
-                        Button(
-                            onClick = {
-                                val headers = listOf("الرقم", "المحفظة", "القيمة (ر.ي)", "التاريخ", "الحالة")
-                                val rows = filteredTransactions.map { tx ->
-                                    val dateStr = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(tx.createdAt))
-                                    listOf(
-                                        tx.phone.ifEmpty { "بدون رقم" },
-                                        if (tx.walletType == "جيب") "محفظة كاش" else tx.walletType,
-                                        "${tx.amount}",
-                                        dateStr,
-                                        "ناجحة"
-                                    )
-                                }
-                                DocumentExporter.exportToExcel(
-                                    context = context,
-                                    fileName = "تقرير_المبيعات",
-                                    title = "تقرير مبيعات الموزع لتاريخ $filterDateByFormatted",
-                                    headers = headers,
-                                    rows = rows
-                                )
-                            }, modifier = Modifier.weight(1f).height(38.dp)
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(Icons.Outlined.TableChart, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface)
-                                Text("Excel", color = MaterialTheme.colorScheme.onSurface)
-                            }
-                        }
-
-                        // Print Button
-                        Button(
-                            onClick = {
-                                val headers = listOf("الرقم", "المحفظة", "القيمة (ر.ي)", "التاريخ", "الحالة")
-                                val rows = filteredTransactions.map { tx ->
-                                    val dateStr = SimpleDateFormat("HH:mm a", Locale.getDefault()).format(Date(tx.createdAt))
-                                    listOf(
-                                        tx.phone.ifEmpty { "بدون رقم" },
-                                        if (tx.walletType == "جيب") "محفظة كاش" else tx.walletType,
-                                        "${tx.amount} ر.ي",
-                                        dateStr,
-                                        "ناجحة"
-                                    )
-                                }
-                                DocumentExporter.printReport(
-                                    context = context,
-                                    title = "تقرير مبيعات الموزع لتاريخ $filterDateByFormatted",
-                                    headers = headers,
-                                    rows = rows
-                                )
-                            }, modifier = Modifier.weight(1f).height(38.dp)
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(Icons.Default.Print, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface)
-                                Text("طباعة", color = MaterialTheme.colorScheme.onSurface)
-                            }
                         }
                     }
                 }
@@ -2907,7 +2126,7 @@ modifier = Modifier.fillMaxWidth()
                 ) {
                     val filterOptions = listOf(
                         Triple("all", "الكل", "All"),
-                        Triple("جيب", "محفظة كاش", "Jeeb"),
+                        Triple("جيب", "جيب", "Jeeb"),
                         Triple("جوالي", "جوالي", "Jawali"),
                         Triple("ون كاش", "ون كاش", "OneCash")
                     )
@@ -3052,8 +2271,7 @@ modifier = Modifier.fillMaxWidth()
             if (filteredPendingApprovals.isEmpty()) {
                 item {
                     Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth()
                     ) {
                         Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
                             Text(text = "لا توجد عمليات معلقة مع مطابقة هذه الفلاتر اليوم.", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -3062,10 +2280,7 @@ modifier = Modifier.fillMaxWidth()
                 }
             } else {
                 items(filteredPendingApprovals) { pending ->
-                    Card(
-                        
-                         0.dp else 1.5.dp), modifier = Modifier.fillMaxWidth()
-                    ) {
+                    Card(modifier = Modifier.fillMaxWidth()) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -3091,7 +2306,7 @@ modifier = Modifier.fillMaxWidth()
                                             "ون كاش" -> Color(0xFFF48FB1)
                                             else -> Color(0xFFFFCC80)
                                         }, modifier = Modifier
-                                            .background( RoundedCornerShape(4.dp))
+                                            .background(Color.Gray.copy(alpha=0.1f), RoundedCornerShape(4.dp))
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     )
                                     Text(
@@ -3158,8 +2373,7 @@ modifier = Modifier.fillMaxWidth()
             if (successDeposits.isEmpty()) {
                 item {
                     Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth()
                     ) {
                         Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
                             Text(text = "لا توجد عمليات ناجحة مسجلة اليوم.", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -3168,10 +2382,7 @@ modifier = Modifier.fillMaxWidth()
                 }
             } else {
                 items(successDeposits) { deposit ->
-                    Card(
-                        
-                         0.dp else 1.5.dp), modifier = Modifier.fillMaxWidth()
-                    ) {
+                    Card(modifier = Modifier.fillMaxWidth()) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -3197,7 +2408,7 @@ modifier = Modifier.fillMaxWidth()
                                             "ون كاش" -> Color(0xFFF48FB1)
                                             else -> Color(0xFFFFCC80)
                                         }, modifier = Modifier
-                                            .background( RoundedCornerShape(4.dp))
+                                            .background(Color.Gray.copy(alpha=0.1f), RoundedCornerShape(4.dp))
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     )
                                     Text(
@@ -3248,8 +2459,7 @@ modifier = Modifier.fillMaxWidth()
         if (filteredTransactions.isEmpty()) {
             item {
                 Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth()
                 ) {
                     Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
                         Text(text = "لا توجد معاملات مبيعات مسجلة بالتاريخ المحدد.", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -3259,12 +2469,7 @@ modifier = Modifier.fillMaxWidth()
         } else {
             items(filteredTransactions) { trans ->
                 val isSuccessfulDistribution = !trans.cardCode.contains("غير متوفر") && !trans.cardCode.contains("فشل")
-                Card(
-                    
-                     MaterialTheme.colorScheme.outline),
-                    
-                     0.dp else 1.5.dp), modifier = Modifier.fillMaxWidth()
-                ) {
+                Card(modifier = Modifier.fillMaxWidth()) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -3285,7 +2490,7 @@ modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
                                     text = if (isSuccessfulDistribution) "ناجح ✔" else "فاشل ✖",
-                                    color = if (isSuccessfulDistribution) Color(0xFF4CAF50),
+                                    color = if (isSuccessfulDistribution) Color(0xFF4CAF50) else Color.Red else Color.Red,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -3321,7 +2526,7 @@ modifier = Modifier.fillMaxWidth()
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(OrangeGoldGradient)
+                        .background(Color(0xFFFFD700))
                         .padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp),
                     horizontalAlignment = Alignment.End
@@ -3374,7 +2579,7 @@ modifier = Modifier.fillMaxWidth()
     ) {
         Box(
             modifier = Modifier
-                .background(OrangeGoldGradient)
+                .background(Color(0xFFFFD700))
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -3420,13 +2625,11 @@ fun SettingsTab(
     val isHasebEnabled by viewModel.isHasebEnabled.collectAsState()
     val isOneCashEnabled by viewModel.isOneCashEnabled.collectAsState()
     val isMFloosEnabled by viewModel.isMFloosEnabled.collectAsState()
-    val autoApprovedAmounts by viewModel.autoApprovedAmounts.collectAsState()
 
     // Configuration Inputs
     var editNetworkNameText by remember { mutableStateOf(networkName) }
     var editSmsTemplateText by remember { mutableStateOf(generalSmsTemplate) }
     var editNewSerialText by remember { mutableStateOf("") }
-    var editAutoApprovedAmountsText by remember(autoApprovedAmounts) { mutableStateOf(autoApprovedAmounts.joinToString(",")) }
 
     var feedbackMsg by remember { mutableStateOf("") }
     var feedbackSuccess by remember { mutableStateOf(true) }
@@ -3441,8 +2644,7 @@ fun SettingsTab(
         // Option toggles (SMS and Notifications)
         item {
             Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -3451,7 +2653,7 @@ modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = "خيارات إرسال ومشاركة كروت الشحن ⚙️",
-                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary,
+                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
 
@@ -3466,7 +2668,7 @@ modifier = Modifier.fillMaxWidth()
                             onCheckedChange = { viewModel.toggleAutoSendSms(it) },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = if (isDarkTheme) MaterialTheme.colorScheme.background else Color.White,
-                                checkedTrackColor = if (isDarkTheme) MaterialTheme.colorScheme.primary
+                                checkedTrackColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary
                             )
                         )
                         Text(
@@ -3487,7 +2689,7 @@ modifier = Modifier.fillMaxWidth()
                             onCheckedChange = { viewModel.toggleNotificationClickCompose(it) },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = if (isDarkTheme) MaterialTheme.colorScheme.background else Color.White,
-                                checkedTrackColor = if (isDarkTheme) MaterialTheme.colorScheme.primary
+                                checkedTrackColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary
                             )
                         )
                         Text(
@@ -3497,17 +2699,17 @@ modifier = Modifier.fillMaxWidth()
                         )
                     }
 
-                    HorizontalDivider(color = GoldAccent.copy(alpha = 0.15f), modifier = Modifier.padding(vertical = 4.dp))
+                    HorizontalDivider(color = Color(0xFFFFD700).copy(alpha = 0.15f), modifier = Modifier.padding(vertical = 4.dp))
                     
                     Text(
                         text = "تفعيل دفعات المحافظ المدعومة 💳",
-                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary,
+                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
 
                     // Switches for each individual wallet
                     val walletList = listOf(
-                        Triple("تفعيل استقبال دفعات (محفظة كاش)", isJeebEnabled) { v: Boolean -> viewModel.toggleJeeb(v) },
+                        Triple("تفعيل استقبال دفعات (جيب)", isJeebEnabled) { v: Boolean -> viewModel.toggleJeeb(v) },
                         Triple("تفعيل استقبال دفعات (جوالي)", isJawaliEnabled) { v: Boolean -> viewModel.toggleJawali(v) },
                         Triple("تفعيل استقبال دفعات (كريمي)", isKuraimiEnabled) { v: Boolean -> viewModel.toggleKuraimi(v) },
                         Triple("تفعيل استقبال دفعات (حاسب)", isHasebEnabled) { v: Boolean -> viewModel.toggleHaseb(v) },
@@ -3526,7 +2728,7 @@ modifier = Modifier.fillMaxWidth()
                                 onCheckedChange = onToggle,
                                 colors = SwitchDefaults.colors(
                                     checkedThumbColor = if (isDarkTheme) MaterialTheme.colorScheme.background else Color.White,
-                                    checkedTrackColor = if (isDarkTheme) MaterialTheme.colorScheme.primary
+                                    checkedTrackColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary
                                 )
                             )
                             Text(
@@ -3543,8 +2745,7 @@ modifier = Modifier.fillMaxWidth()
         // Customizable Templates & Brand
         item {
             Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -3553,7 +2754,7 @@ modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = "تخصيص البيانات والرسائل 📝",
-                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary,
+                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
 
@@ -3562,7 +2763,7 @@ modifier = Modifier.fillMaxWidth()
                         value = editNetworkNameText,
                         onValueChange = { editNetworkNameText = it; feedbackMsg = "" },
                         label = { Text("اسم الشبكة (بدون التفعيل)") }, modifier = Modifier.fillMaxWidth().testTag("settings_network_name_fld"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
                          MaterialTheme.colorScheme.primary
 ))
 
@@ -3571,7 +2772,7 @@ modifier = Modifier.fillMaxWidth()
                         value = editSmsTemplateText,
                         onValueChange = { editSmsTemplateText = it; feedbackMsg = "" },
                         label = { Text("صيغة الرسالة المرسلة تلقائياً لشبكتك") }, modifier = Modifier.fillMaxWidth().height(115.dp).testTag("settings_sms_tpl_fld"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
                          MaterialTheme.colorScheme.primary
 ))
 
@@ -3582,25 +2783,14 @@ modifier = Modifier.fillMaxWidth()
                         label = { Text("تغيير السيريال (كلمة السر الجديدة)") },
                         placeholder = { Text("أدخل رمز تفعيل أو باسورد جديد مباشرة هنا") },
                         singleLine = true, modifier = Modifier.fillMaxWidth().testTag("settings_password_fld"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
-                         MaterialTheme.colorScheme.primary
-))
-
-                    // Configurable auto-approved amounts
-                    OutlinedTextField(
-                        value = editAutoApprovedAmountsText,
-                        onValueChange = { editAutoApprovedAmountsText = it; feedbackMsg = "" },
-                        label = { Text("فئات المبالغ المعتمدة تلقائياً (مفصولة بفاصلة )") },
-                        placeholder = { Text("مثال: 100,200,300,500,1000") },
-                        singleLine = true, modifier = Modifier.fillMaxWidth().testTag("settings_approved_amounts_fld"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
                          MaterialTheme.colorScheme.primary
 ))
 
                     if (feedbackMsg.isNotEmpty()) {
                         Text(
                             text = feedbackMsg,
-                            color = if (feedbackSuccess) Color(0xFF4CAF50), modifier = Modifier.fillMaxWidth(),
+                            color = if (feedbackSuccess) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error, modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Right
                         )
                     }
@@ -3618,10 +2808,6 @@ modifier = Modifier.fillMaxWidth()
                                 viewModel.setAppPasswordDirectly(editNewSerialText.trim())
                                 editNewSerialText = ""
                             }
-                            val parsedAmounts = editAutoApprovedAmountsText.split(",")
-                                .mapNotNull { it.trim().toIntOrNull() }
-                            viewModel.updateAutoApprovedAmounts(parsedAmounts)
-
                             feedbackSuccess = true
                             feedbackMsg = "تم حفظ التعديلات والبيانات الجديدة بنجاح! ✔"
                         },
@@ -3648,8 +2834,7 @@ modifier = Modifier.fillMaxWidth()
         // Appearance
         item {
             Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier
@@ -3663,14 +2848,14 @@ modifier = Modifier.fillMaxWidth()
                         onCheckedChange = { viewModel.setDarkTheme(it) },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = if (isDarkTheme) MaterialTheme.colorScheme.background else Color.White,
-                            checkedTrackColor = if (isDarkTheme) MaterialTheme.colorScheme.primary
+                            checkedTrackColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary
                         )
                     )
 
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = "مظهر التطبيق والموضوع 🌗",
-                            color = if (isDarkTheme) MaterialTheme.colorScheme.primary,
+                            color = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
@@ -3682,87 +2867,10 @@ modifier = Modifier.fillMaxWidth()
             }
         }
 
-        // Cloud Backup & Synchronization Controls
-        item {
-            var syncStatusMessage by remember { mutableStateOf("") }
-            var isSyncing by remember { mutableStateOf(false) }
-
-            Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth().testTag("cloud_sync_card")
-            ) {
-                Column(
-                    modifier = Modifier.padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalAlignment = Alignment.End
-                ) {
-                    Text(
-                        text = "النسخ الاحتياطي والمزامنة السحابية ☁️",
-                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "يتيح لك النظام السحابي حفظ بياناتك وتحديثها باستمرار على الخادم وحمايتها من الضياع أو استعادتها عند إعادة التثبيت.",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 16.sp
-                    )
-
-                    if (syncStatusMessage.isNotEmpty()) {
-                        Text(
-                            text = syncStatusMessage,
-                            color = GoldAccent, modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        // Restore / Download button
-                        Button(
-                            onClick = {
-                                if (!isSyncing) {
-                                    isSyncing = true
-                                    syncStatusMessage = "جاري استرداد البيانات من السحابة..."
-                                    com.example.network.CloudSyncEngine.getInstance(context).downloadServerData { success, msg ->
-                                        isSyncing = false
-                                        syncStatusMessage = msg
-                                    }
-                                }
-                            },
-                            enabled = !isSyncing),
-                             Color(0xFFFF4081).copy(alpha = 0.5f)), modifier = Modifier.weight(1f)
-                        ) {
-                            Text(text = "استيراد البيانات 📥", color = MaterialTheme.colorScheme.onSurface)
-                        }
-
-                        // Manual Backup / Sync Now button
-                        Button(
-                            onClick = {
-                                if (!isSyncing) {
-                                    isSyncing = true
-                                    syncStatusMessage = "جاري رفع ومزامنة البيانات..."
-                                    com.example.network.CloudSyncEngine.getInstance(context).performIncrementalSync { success, msg ->
-                                        isSyncing = false
-                                        syncStatusMessage = msg
-                                    }
-                                }
-                            },
-                            enabled = !isSyncing,
-                             MaterialTheme.colorScheme.primary), modifier = Modifier.weight(1f)
-                        ) {
-                            Text(text = "مزامنة الآن 🔄", color = MaterialTheme.colorScheme.onSurface)
-                        }
-                    }
-                }
-            }
-        }
-
         // Developer info card fixed at the bottom
         item {
             Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth().testTag("developer_card")
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth().testTag("developer_card")
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -3771,22 +2879,22 @@ modifier = Modifier.fillMaxWidth().testTag("developer_card")
                 ) {
                     Text(
                         text = "معلومات المطور والدعم الفني 👨‍💻",
-                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary,
+                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.Center
                     )
-                    HorizontalDivider(color = GoldAccent.copy(alpha = 0.15f))
+                    HorizontalDivider(color = Color(0xFFFFD700).copy(alpha = 0.15f))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "كيان سوفت", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                        Text(text = "أحمد المنتصر", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                         Text(text = "المطور:", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "773303455", color = if (isDarkTheme) MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
+                        Text(text = "773086403", color = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
                         Text(text = "للتواصل:", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
@@ -3851,8 +2959,7 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
         // Add Customer Form Card
         item {
             Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -3872,7 +2979,7 @@ modifier = Modifier.fillMaxWidth()
                         label = { Text("اسم العميل / الزبون") },
                         placeholder = { Text("مثال: احمد جابر حسن") },
                         singleLine = true, modifier = Modifier.fillMaxWidth().testTag("special_cust_name"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
                          MaterialTheme.colorScheme.primary
 ))
 
@@ -3892,8 +2999,7 @@ modifier = Modifier.fillMaxWidth()
                             FilterChip(
                                 selected = walletType == option,
                                 onClick = { walletType = option },
-                                label = { Text(if (option == "جيب") "محفظة كاش" else option,
-                                
+                                label = { Text(option) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = (MaterialTheme.colorScheme.primary).copy(alpha = 0.15f),
                                     selectedLabelColor = MaterialTheme.colorScheme.primary,
@@ -3902,7 +3008,7 @@ modifier = Modifier.fillMaxWidth()
                                 border = FilterChipDefaults.filterChipBorder(
                                     enabled = true,
                                     selected = walletType == option,
-                                    borderColor = if (walletType == option) (MaterialTheme.colorScheme.primary).copy(alpha = 0.2f),
+                                    borderColor = if (walletType == option) (MaterialTheme.colorScheme.primary).copy(alpha = 0.2f) else MaterialTheme.colorScheme.outline,
                                     selectedBorderColor = MaterialTheme.colorScheme.primary,
                                     borderWidth = 1.dp,
                                     selectedBorderWidth = 1.5.dp
@@ -3919,8 +3025,7 @@ modifier = Modifier.fillMaxWidth()
                             FilterChip(
                                 selected = walletType == option,
                                 onClick = { walletType = option },
-                                label = { Text(if (option == "جيب") "محفظة كاش" else option,
-                                
+                                label = { Text(option) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = (MaterialTheme.colorScheme.primary).copy(alpha = 0.15f),
                                     selectedLabelColor = MaterialTheme.colorScheme.primary,
@@ -3929,7 +3034,7 @@ modifier = Modifier.fillMaxWidth()
                                 border = FilterChipDefaults.filterChipBorder(
                                     enabled = true,
                                     selected = walletType == option,
-                                    borderColor = if (walletType == option) (MaterialTheme.colorScheme.primary).copy(alpha = 0.2f),
+                                    borderColor = if (walletType == option) (MaterialTheme.colorScheme.primary).copy(alpha = 0.2f) else MaterialTheme.colorScheme.outline,
                                     selectedBorderColor = MaterialTheme.colorScheme.primary,
                                     borderWidth = 1.dp,
                                     selectedBorderWidth = 1.5.dp
@@ -3945,7 +3050,7 @@ modifier = Modifier.fillMaxWidth()
                         label = { Text("رمز الحساب أو معرّف المحفضه للزبون") },
                         placeholder = { Text("مثال: 120025 أو الاسم كما in الكريمي") },
                         singleLine = true, modifier = Modifier.fillMaxWidth().testTag("special_cust_wallet_id"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
                          MaterialTheme.colorScheme.primary
 ))
 
@@ -3956,7 +3061,7 @@ modifier = Modifier.fillMaxWidth()
                         label = { Text("رقم هاتفه الأساسي الشخصي للمطابقة") },
                         placeholder = { Text("مثال: 770118275") },
                         singleLine = true, modifier = Modifier.fillMaxWidth().testTag("special_cust_phone_id"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
                          MaterialTheme.colorScheme.primary
 ))
 
@@ -4038,8 +3143,7 @@ modifier = Modifier.fillMaxWidth()
         if (allMappings.isEmpty()) {
             item {
                 Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = "لا يوجد أي زبائن استثنائيين مضافين حالياً.",
@@ -4051,8 +3155,7 @@ modifier = Modifier.fillMaxWidth()
             items(allMappings.size) { index ->
                 val mapping = allMappings[index]
                 Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(14.dp),
@@ -4132,6 +3235,8 @@ modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
     }
 }
 
+fun String.escapeCsv(): String { return this.replace("\"", "\"\"").let { "\"$it\"" } }
+
 fun exportTransactionsToCsv(
     context: Context,
     transactions: List<Transaction>,
@@ -4159,11 +3264,11 @@ fun exportTransactionsToCsv(
             
             csvBuilder.append("${tx.id},")
             csvBuilder.append("عميل مباشر,")
-            csvBuilder.append("${escapeCsv(phone)},")
-            csvBuilder.append("${escapeCsv(amount)},")
-            csvBuilder.append("${escapeCsv(cardDetails)},")
-            csvBuilder.append("${escapeCsv(wallet)},")
-            csvBuilder.append("${escapeCsv(dateStr)}\n")
+            csvBuilder.append("${phone.escapeCsv()},")
+            csvBuilder.append("${amount.escapeCsv()},")
+            csvBuilder.append("${cardDetails.escapeCsv()},")
+            csvBuilder.append("${wallet.escapeCsv()},")
+            csvBuilder.append("${dateStr.escapeCsv()}\n")
         }
 
         val filename = "تقرير_توزيع_الكروت_${dateLabel}_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.csv"
@@ -4220,13 +3325,13 @@ fun exportCustomerTransactionsToCsv(
             val dateStr = sdf.format(Date(tx.createdAt))
             
             csvBuilder.append("${tx.id},")
-            csvBuilder.append("${escapeCsv(name)},")
-            csvBuilder.append("${escapeCsv(uniqueId)},")
-            csvBuilder.append("${escapeCsv(phone)},")
-            csvBuilder.append("${escapeCsv(amount)},")
-            csvBuilder.append("${escapeCsv(cardDetails)},")
-            csvBuilder.append("${escapeCsv(wallet)},")
-            csvBuilder.append("${escapeCsv(dateStr)}\n")
+            csvBuilder.append("${name.escapeCsv()},")
+            csvBuilder.append("${uniqueId.escapeCsv()},")
+            csvBuilder.append("${phone.escapeCsv()},")
+            csvBuilder.append("${amount.escapeCsv()},")
+            csvBuilder.append("${cardDetails.escapeCsv()},")
+            csvBuilder.append("${wallet.escapeCsv()},")
+            csvBuilder.append("${dateStr.escapeCsv()}\n")
         }
 
         val filename = "تقرير_معاملات_العملاء_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.csv"
@@ -4251,14 +3356,7 @@ fun exportCustomerTransactionsToCsv(
     }
 }
 
-private fun escapeCsv(value: String): String {
-    val clean = value.replace("\"", "\"\"")
-    return if (clean.contains(",") || clean.contains("\n") || clean.contains("\"")) {
-        "\"$clean\""
-    } else {
-        clean
-    }
-}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -4266,7 +3364,6 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
     val context = LocalContext.current
     val allPendingApprovals by viewModel.allPendingApprovals.collectAsState()
     val isDark by viewModel.isDarkTheme.collectAsState()
-    val autoApprovedAmounts by viewModel.autoApprovedAmounts.collectAsState()
 
     var showLinkDialog by remember { mutableStateOf(false) }
     var pendingToLink by remember { mutableStateOf<com.example.models.PendingApproval?>(null) }
@@ -4300,8 +3397,7 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
         if (allPendingApprovals.isEmpty()) {
             item {
                 Card(
-border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-modifier = Modifier.fillMaxWidth().padding(top = 24.dp)
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline), modifier = Modifier.fillMaxWidth().padding(top = 24.dp)
                 ) {
                     Column(
                         modifier = Modifier.padding(32.dp),
@@ -4327,10 +3423,8 @@ modifier = Modifier.fillMaxWidth().padding(top = 24.dp)
         } else {
             items(allPendingApprovals.size) { index ->
                 val pending = allPendingApprovals[index]
-                Card(
-colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-modifier = Modifier.fillMaxWidth()
-) {
+                Card(colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer), modifier = Modifier.fillMaxWidth()
+                ) {
                     Column(
                         modifier = Modifier.padding(18.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -4342,44 +3436,29 @@ modifier = Modifier.fillMaxWidth()
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Wallet and Approved Status Badges
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                val badgeBgColor = when (pending.walletType) {
-                                    "جيب" -> Color(0xFF1565C0).copy(alpha = 0.15f)
-                                    "جوالي" -> Color(0xFF2E7D32).copy(alpha = 0.15f)
-                                    "كريمي" -> Color(0xFFC62828).copy(alpha = 0.15f)
-                                    "حاسب" -> Color(0xFFEF6C00).copy(alpha = 0.15f)
-                                    "ون كاش" -> Color(0xFF880E4F).copy(alpha = 0.15f)
-                                    else -> Color(0xFF4527A0).copy(alpha = 0.15f)
-                                }
-                                val badgeTextColor = when (pending.walletType) {
-                                    "جيب" -> Color(0xFF90CAF9)
-                                    "جوالي" -> Color(0xFFA5D6A7)
-                                    "كريمي" -> Color(0xFFEF9A9A)
-                                    "حاسب" -> Color(0xFFFFCC80)
-                                    "ون كاش" -> Color(0xFFF48FB1)
-                                    else -> Color(0xFFB39DDB)
-                                }
-                                Surface(
-                                    color = badgeBgColor) {
-                                    Text(
-                                        text = pending.walletType,
-                                        color = badgeTextColor, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    )
-                                }
-
-                                val isAutoApproved = autoApprovedAmounts.contains(pending.amount)
-                                if (!isAutoApproved) {
-                                    Surface( color = Color(0xFFD32F2F).copy(alpha = 0.15f) ) {
-                                        Text(
-                                            text = "⚠️ فئة غير معتمدة",
-                                            color = Color(0xFFEF5350), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                        )
-                                    }
-                                }
+                            // Wallet Badge
+                            val badgeBgColor = when (pending.walletType) {
+                                "جيب" -> Color(0xFF1565C0).copy(alpha = 0.15f)
+                                "جوالي" -> Color(0xFF2E7D32).copy(alpha = 0.15f)
+                                "كريمي" -> Color(0xFFC62828).copy(alpha = 0.15f)
+                                "حاسب" -> Color(0xFFEF6C00).copy(alpha = 0.15f)
+                                "ون كاش" -> Color(0xFF880E4F).copy(alpha = 0.15f)
+                                else -> Color(0xFF4527A0).copy(alpha = 0.15f)
+                            }
+                            val badgeTextColor = when (pending.walletType) {
+                                "جيب" -> Color(0xFF90CAF9)
+                                "جوالي" -> Color(0xFFA5D6A7)
+                                "كريمي" -> Color(0xFFEF9A9A)
+                                "حاسب" -> Color(0xFFFFCC80)
+                                "ون كاش" -> Color(0xFFF48FB1)
+                                else -> Color(0xFFB39DDB)
+                            }
+                            Surface(
+                                color = badgeBgColor) {
+                                Text(
+                                    text = pending.walletType,
+                                    color = badgeTextColor, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
                             }
 
                             // Amount Label
@@ -4470,21 +3549,14 @@ modifier = Modifier.fillMaxWidth()
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val isAutoApproved = autoApprovedAmounts.contains(pending.amount)
-                            // Reject or Ignore Button
+                            // Reject Button (Red outline)
                             OutlinedButton(
                                 onClick = {
-                                    if (isAutoApproved) {
-                                        viewModel.rejectPendingApproval(pending.id)
-                                        Toast.makeText(context, "تم رفض المعاملة اليدوية وإلغاؤها", Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        viewModel.ignorePendingApproval(pending.id)
-                                        Toast.makeText(context, "تم تجاهل التحويل وحذف الإيداع بنجاح", Toast.LENGTH_SHORT).show()
-                                    }
-                                },
-                                 colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error), modifier = Modifier.weight(1f).height(42.dp)
+                                    viewModel.rejectPendingApproval(pending.id)
+                                    Toast.makeText(context, "تم رفض المعاملة اليدوية وإلغاؤها", Toast.LENGTH_SHORT).show()
+                                }, modifier = Modifier.weight(1f).height(42.dp)
                             ) {
-                                Text(if (isAutoApproved) "رفض الدفعة ✖" else "تجاهل التحويل ✖", fontWeight = FontWeight.Bold)
+                                Text("رفض الدفعة ✖", fontWeight = FontWeight.Bold)
                             }
 
                             // Approve Button (Emerald Green style)
@@ -4555,12 +3627,10 @@ modifier = Modifier.fillMaxWidth()
                         label = { Text("رقم جوال العميل") },
                         placeholder = { Text("مثال: 777123456") },
                         singleLine = true,
-                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
-                    )
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone),
+modifier = Modifier.fillMaxWidth(),
+textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
+)
                 }
             },
             confirmButton = {
@@ -4584,7 +3654,7 @@ modifier = Modifier.fillMaxWidth()
                         } else {
                             Toast.makeText(context, "الرجاء إدخال رقم هاتف صحيح", Toast.LENGTH_SHORT).show()
                         }
-                    } {
+                    }) {
                     Text("حفظ وربط ✔", color = MaterialTheme.colorScheme.onSurface)
                 }
             },
@@ -4598,100 +3668,5 @@ modifier = Modifier.fillMaxWidth()
                 }
             }, modifier = Modifier.border(BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline), RoundedCornerShape(20.dp))
         )
-    }
-}
-
-@Composable
-fun RowScope.BottomNavItem(
-    selected: Boolean,
-    onClick: () -> Unit,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    selectedIcon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String
-) {
-    Box(
-        modifier = Modifier
-            .weight(1f)
-            .fillMaxHeight()
-            .clickable(
-                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .width(44.dp)
-                    .height(26.dp)
-                    .background(
-                        color = if (selected) Color(0xFFDC2626).copy(alpha = 0.1f) else Color.Transparent),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = if (selected) selectedIcon else icon,
-                    contentDescription = label,
-                    tint = if (selected) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = label,
-                fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium,
-                color = if (selected) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
-}
-
-@Composable
-fun DashboardMetricItem(
-    title: String,
-    value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    iconColor: Color
-) {
-    Card( // Dark slate card background, modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = title,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Right
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = value,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Right
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(iconColor.copy(alpha = 0.12f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconColor, modifier = Modifier.size(16.dp)
-                )
-            }
-        }
     }
 }

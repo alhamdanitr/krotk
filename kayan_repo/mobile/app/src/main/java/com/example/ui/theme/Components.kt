@@ -73,7 +73,7 @@ fun StandardTopAppBar(title: String, onBackClick: (() -> Unit)? = null) {
             if (onBackClick != null) {
                 IconButton(onClick = onBackClick) {
                     Icon(
-                        imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.androidx.compose.material.icons.automirrored.filled.ArrowBack,
+                        imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.androidx.compose.material.icons.automirrored.filled.androidx.compose.material.icons.automirrored.filled.ArrowBack,
                         contentDescription = "Back"
                     )
                 }

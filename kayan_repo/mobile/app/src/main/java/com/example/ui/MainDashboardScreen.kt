@@ -3468,7 +3468,7 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
         } else {
             items(allPendingApprovals.size) { index ->
                 val pending = allPendingApprovals[index]
-                Card(colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),  modifier = Modifier.fillMaxWidth()
+                Card(colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer), modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
                         modifier = Modifier.padding(18.dp),
