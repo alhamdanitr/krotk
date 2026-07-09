@@ -89,20 +89,13 @@ fun MainDashboardScreen(
             title = {
                 Text(
                     text = "تأكيد الخروج ⚠️",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    textAlign = TextAlign.Right,
-                    modifier = Modifier.fillMaxWidth()
+                    color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth()
                 )
             },
             text = {
                 Text(
                     text = "هل تريد الخروج من التطبيق بالفعل؟",
-                    color = TextSecondary,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Right,
-                    modifier = Modifier.fillMaxWidth()
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth()
                 )
             },
             confirmButton = {
@@ -110,23 +103,17 @@ fun MainDashboardScreen(
                     onClick = {
                         showExitConfirmDialog = false
                         (context as? android.app.Activity)?.finish()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandPrimaryRed),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Text("نعم", color = Color.White, fontWeight = FontWeight.Bold)
+                    }) {
+                    Text("نعم", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showExitConfirmDialog = false }
                 ) {
-                    Text("إلغاء", color = TextSecondary, fontWeight = FontWeight.Bold)
+                    Text("إلغاء", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
                 }
             },
-            containerColor = SurfaceDark,
-            shape = RoundedCornerShape(16.dp)
-        )
     }
 
     LaunchedEffect(Unit) {
@@ -138,7 +125,7 @@ fun MainDashboardScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBlack)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         if (currentSubScreen == "distributor") {
             DistributorSystemScreen(
@@ -164,11 +151,9 @@ fun MainDashboardScreen(
                 ) {
                     // White background card with top rounded corners
                     Surface(
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         tonalElevation = 0.dp,
-                        shadowElevation = 16.dp,
-                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                        modifier = Modifier.fillMaxSize()
+                        shadowElevation = 16.dp, modifier = Modifier.fillMaxSize()
                     ) {
                         Row(
                             modifier = Modifier.fillMaxSize(),
@@ -237,25 +222,21 @@ fun MainDashboardScreen(
                             .align(Alignment.TopCenter)
                             .offset(y = (-32).dp)
                             .size(64.dp)
-                            .shadow(elevation = 12.dp, shape = CircleShape)
+                            .shadow(elevation = 12.dp)
                             .background(
-                                color = if (isCenterMenuOpen) Color(0xFF1E293B) else Color(0xFFDC2626),
-                                shape = CircleShape
-                            )
+                                color = if (isCenterMenuOpen) MaterialTheme.colorScheme.secondaryContainer)
                             .clickable { isCenterMenuOpen = !isCenterMenuOpen },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = if (isCenterMenuOpen) Icons.Default.Close else Icons.Filled.KeyboardDoubleArrowUp,
                             contentDescription = "القائمة",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
+                            tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp)
                         )
                     }
                 }
-            },
-            containerColor = DeepBlack
-        ) { innerPadding ->
+            }
+) { innerPadding ->
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -291,8 +272,7 @@ fun MainDashboardScreen(
         AnimatedVisibility(
             visible = isCenterMenuOpen,
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter)
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(), modifier = Modifier.align(Alignment.BottomCenter)
         ) {
             Box(
                 modifier = Modifier
@@ -302,11 +282,7 @@ fun MainDashboardScreen(
                 contentAlignment = Alignment.BottomCenter
             ) {
                 // Overlay Bottom Card
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
-                    modifier = Modifier
+                Card(modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 0.dp)
                         .clickable(enabled = false) { } // prevent clicks from closing
@@ -320,11 +296,7 @@ fun MainDashboardScreen(
                     ) {
                         Text(
                             text = "الوصول السريع والخدمات الإضافية",
-                            color = Color.White,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                            color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                         )
 
                         // 2x2 Action Cards Grid (Exactly like the screenshot grid)
@@ -333,11 +305,7 @@ fun MainDashboardScreen(
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             // Card 1: التفويضات (Approvals)
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier
+                            Card(modifier = Modifier
                                     .weight(1f)
                                     .height(100.dp)
                                     .clickable {
@@ -354,20 +322,18 @@ fun MainDashboardScreen(
                                         Icon(
                                             imageVector = Icons.Default.DoneAll,
                                             contentDescription = null,
-                                            tint = BrandPrimaryRed,
-                                            modifier = Modifier.size(28.dp)
+                                            tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp)
                                         )
                                         if (allPendingApprovals.isNotEmpty()) {
                                             Box(
                                                 modifier = Modifier
                                                     .offset(x = 10.dp, y = (-10).dp)
-                                                    .background(BrandPrimaryRed, CircleShape)
+                                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
                                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                                             ) {
                                                 Text(
                                                     text = allPendingApprovals.size.toString(),
-                                                    color = Color.White,
-                                                    fontSize = 10.sp,
+                                                    color = MaterialTheme.colorScheme.onSurface,
                                                     fontWeight = FontWeight.Bold
                                                 )
                                             }
@@ -376,19 +342,14 @@ fun MainDashboardScreen(
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = "التفويضات المعلقة",
-                                        color = Color.White,
-                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
                             }
 
                             // Card 2: العملاء (Special Customers)
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier
+                            Card(modifier = Modifier
                                     .weight(1f)
                                     .height(100.dp)
                                     .clickable {
@@ -404,14 +365,12 @@ fun MainDashboardScreen(
                                     Icon(
                                         imageVector = Icons.Default.People,
                                         contentDescription = null,
-                                        tint = BrandPrimaryRed,
-                                        modifier = Modifier.size(28.dp)
+                                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp)
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = "العملاء الاستثنائيين",
-                                        color = Color.White,
-                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -423,11 +382,7 @@ fun MainDashboardScreen(
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             // Card 3: إضافة كارت (Add Card quick action)
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier
+                            Card(modifier = Modifier
                                     .weight(1f)
                                     .height(100.dp)
                                     .clickable {
@@ -443,25 +398,19 @@ fun MainDashboardScreen(
                                     Icon(
                                         imageVector = Icons.Default.AddCard,
                                         contentDescription = null,
-                                        tint = BrandPrimaryRed,
-                                        modifier = Modifier.size(28.dp)
+                                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp)
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = "إضافة كروت جديدة",
-                                        color = Color.White,
-                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
                             }
 
                             // Card 4: مزامنة وتحديث (Sync / Refresh action)
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier
+                            Card(modifier = Modifier
                                     .weight(1f)
                                     .height(100.dp)
                                     .clickable {
@@ -477,14 +426,12 @@ fun MainDashboardScreen(
                                     Icon(
                                         imageVector = Icons.Default.Sync,
                                         contentDescription = null,
-                                        tint = BrandPrimaryRed,
-                                        modifier = Modifier.size(28.dp)
+                                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp)
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = "تحديث ومزامنة الكروت",
-                                        color = Color.White,
-                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -497,16 +444,15 @@ fun MainDashboardScreen(
                         Box(
                             modifier = Modifier
                                 .size(56.dp)
-                                .background(Color(0xFF0F172A), CircleShape)
-                                .border(BorderStroke(2.dp, Color.White.copy(alpha = 0.1f)), CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                                .border(BorderStroke(2.dp), CircleShape)
                                 .clickable { isCenterMenuOpen = false },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = "إغلاق",
-                                tint = Color.White,
-                                modifier = Modifier.size(24.dp)
+                                tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp)
                             )
                         }
                     }
@@ -525,16 +471,11 @@ fun MainDashboardScreen(
             title = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = "🎉 تم استخراج كرت جديد بنجاح",
-                        color = if (isDark) GlowOrangeGold else Color(0xFFE65100),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier.weight(1f)
+                        color = MaterialTheme.colorScheme.secondary, modifier = Modifier.weight(1f)
                     )
                 }
             },
@@ -546,30 +487,27 @@ fun MainDashboardScreen(
                 ) {
                     Text(
                         text = "تفاصيل العملية المستلمة ومشاركة الكود:",
-                        color = PureWhite,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier.fillMaxWidth()
+                        color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth()
                     )
 
                     // Card Info Row
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(SurfaceDark.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
                             .padding(10.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(horizontalAlignment = Alignment.Start) {
-                            Text("المبلغ: ${event.amount} ر.ي", color = PureWhite, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            Text("المحفظة: ${event.walletType}", color = TextSecondary, fontSize = 10.sp)
+                            Text("المبلغ: ${event.amount} ر.ي", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                            Text("المحفظة: ${event.walletType}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("الرقم: ${event.recipientPhone}", color = PureWhite, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("الرقم: ${event.recipientPhone}", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                             val statusText = if (event.isAutoSent) "تم الإرسال تلقائياً ✔" else "فشل الإرسال التلقائي ⚠️"
-                            val statusColor = if (event.isAutoSent) GlowEmeraldGreen else StatusRed
-                            Text(statusText, color = statusColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            val statusColor = if (event.isAutoSent) MaterialTheme.colorScheme.primary
+                            Text(statusText, color = statusColor, fontWeight = FontWeight.Bold)
                         }
                     }
 
@@ -577,21 +515,14 @@ fun MainDashboardScreen(
                     
                     Text(
                         text = "كود الكرت المستخرج:",
-                        color = TextSecondary,
-                        fontSize = 11.sp,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier.fillMaxWidth()
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth()
                     )
 
                     Text(
                         text = event.cardDetails,
-                        color = if (isDark) GlowOrangeGold else Color(0xFFE65100),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
+                        color = MaterialTheme.colorScheme.secondary, modifier = Modifier
                             .fillMaxWidth()
-                            .background(SurfaceDark.copy(alpha = 0.8f), RoundedCornerShape(10.dp))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f), RoundedCornerShape(10.dp))
                             .padding(12.dp)
                     )
                 }
@@ -611,11 +542,9 @@ fun MainDashboardScreen(
                             com.example.utils.SmsSender.launchWalletApp(context, event.walletType, shareMessage)
                             activeEventNotification = null
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = if (isDark) GlowEmeraldGreen else Color(0xFF2E7D32)),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().height(44.dp)
+                         MaterialTheme.colorScheme.primary), modifier = Modifier.fillMaxWidth().height(44.dp)
                     ) {
-                        Text("مشاركة وفتح تطبيق ${event.walletType} 🚀", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text("مشاركة وفتح تطبيق ${event.walletType} 🚀", color = MaterialTheme.colorScheme.onSurface)
                     }
 
                     Button(
@@ -626,29 +555,21 @@ fun MainDashboardScreen(
                             Toast.makeText(context, "تم نسخ كود الكارت بنجاح! 📋", Toast.LENGTH_SHORT).show()
                             activeEventNotification = null
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = if (isDark) GlowOrangeGold else Color(0xFFE65100)),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().height(44.dp)
+                         MaterialTheme.colorScheme.secondary), modifier = Modifier.fillMaxWidth().height(44.dp)
                     ) {
-                        Text("نسخ الكود فقط 📋", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text("نسخ الكود فقط 📋", color = MaterialTheme.colorScheme.onSurface)
                     }
 
                     OutlinedButton(
                         onClick = {
                             activeEventNotification = null
-                        },
-                        border = BorderStroke(1.dp, TextSecondary.copy(alpha = 0.5f)),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().height(44.dp)
+                        }, modifier = Modifier.fillMaxWidth().height(44.dp)
                     ) {
-                        Text("إغلاق ✖", fontSize = 11.sp, color = TextSecondary, fontWeight = FontWeight.Bold)
+                        Text("إغلاق ✖", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
                     }
                 }
             },
-            dismissButton = null,
-            containerColor = SurfaceDark,
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.border(BorderStroke(1.5.dp, if (isDarkTheme) Color(0xFF2D2D2D) else Color(0x1F000000)), RoundedCornerShape(20.dp))
+            dismissButton = null, modifier = Modifier.border(BorderStroke(1.5.dp), RoundedCornerShape(20.dp))
         )
     }
 }
@@ -701,7 +622,7 @@ fun HomeTab(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepBlack)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -740,8 +661,7 @@ fun HomeTab(
                         Icon(
                             imageVector = Icons.Outlined.Chat,
                             contentDescription = "تواصل واتساب مع المطور",
-                            tint = Color(0xFF25D366),
-                            modifier = Modifier.size(20.dp)
+                            tint = Color(0xFF25D366), modifier = Modifier.size(20.dp)
                         )
                     }
 
@@ -749,8 +669,8 @@ fun HomeTab(
                     Box(
                         modifier = Modifier
                             .size(44.dp)
-                            .background(SurfaceDark, CircleShape)
-                            .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)), CircleShape)
+                            .background(MaterialTheme.colorScheme.surface, CircleShape)
+                            .border(BorderStroke(1.dp), CircleShape)
                             .clickable {
                                 Toast.makeText(context, "🔔 لا توجد إشعارات جديدة غير مقروءة.", Toast.LENGTH_SHORT).show()
                             },
@@ -768,8 +688,7 @@ fun HomeTab(
                             Icon(
                                 imageVector = Icons.Outlined.Notifications,
                                 contentDescription = "الإشعارات",
-                                tint = PureWhite,
-                                modifier = Modifier.size(20.dp)
+                                tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp)
                             )
                         }
                     }
@@ -783,14 +702,12 @@ fun HomeTab(
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = "صباح الخير 👋",
-                            color = TextSecondary,
-                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium
                         )
                         Text(
                             text = networkName.ifEmpty { "جارالله" },
-                            color = PureWhite,
-                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.ExtraBold
                         )
                     }
@@ -799,14 +716,13 @@ fun HomeTab(
                     Box(
                         modifier = Modifier
                             .size(48.dp)
-                            .background(BrandPrimaryRed.copy(alpha = 0.15f), CircleShape)
-                            .border(BorderStroke(2.dp, BrandPrimaryRed), CircleShape),
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), CircleShape)
+                            .border(BorderStroke(2.dp, MaterialTheme.colorScheme.primary), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = if (networkName.isNotEmpty()) networkName.take(1) else "ج",
-                            color = BrandPrimaryRed,
-                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -819,11 +735,7 @@ fun HomeTab(
         // Trial warning/notice banner (if trial is active and not fully activated)
         if (isTrialActive && !isActivated) {
             item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E2F)),
-                    border = BorderStroke(1.dp, GlowPurplePink.copy(alpha = 0.4f)),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth().clickable {
+                Card(modifier = Modifier.fillMaxWidth().clickable {
                         try {
                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/967773303455"))
                             context.startActivity(intent)
@@ -843,26 +755,21 @@ fun HomeTab(
                         ) {
                             Text(
                                 text = "الفترة التجريبية المجانية مفعلة ⏳",
-                                color = GlowPurplePink,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFF4081),
                                 textAlign = TextAlign.Right
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             val remainingDays = viewModel.getRemainingTrialDays()
                             Text(
                                 text = "متبقي لديك $remainingDays أيام لتجربة التطبيق مجاناً. اضغط هنا للتواصل مع المطور لشراء السيريال والتنشيط الدائم.",
-                                color = TextSecondary,
-                                fontSize = 11.sp,
-                                textAlign = TextAlign.Right,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 lineHeight = 16.sp
                             )
                         }
                         Icon(
                             imageVector = Icons.Outlined.Timer,
                             contentDescription = "مؤقت التجربة",
-                            tint = GlowPurplePink,
-                            modifier = Modifier.size(24.dp)
+                            tint = Color(0xFFFF4081), modifier = Modifier.size(24.dp)
                         )
                     }
                 }
@@ -876,12 +783,7 @@ fun HomeTab(
             val totalDepositsToday = todayDeposits.sumOf { it.amount }
             val totalOperationsToday = totalCardsSoldToday + todayDeposits.size
 
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF13151E)), // Deep luxury space blue surface
-                border = BorderStroke(1.2.dp, Color(0xFF262936)),
-                shape = RoundedCornerShape(24.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
-                modifier = Modifier
+            Card( // Deep luxury space blue surface, modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
                     .testTag("app_dashboard_card")
@@ -915,17 +817,14 @@ fun HomeTab(
                             )
                             Text(
                                 text = "تحديث تلقائي: $lastUpdateStr",
-                                color = TextSecondary.copy(alpha = 0.8f),
-                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                                 fontWeight = FontWeight.Bold
                             )
                         }
                         
                         Text(
                             text = "لوحة التحكم اليومية 📊",
-                            color = BrandPrimaryRed,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Right
                         )
                     }
@@ -991,10 +890,7 @@ fun HomeTab(
             ) {
                 Text(
                     text = "الخدمات والأنظمة المتكاملة ⚡",
-                    color = PureWhite,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Right
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -1005,11 +901,7 @@ fun HomeTab(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     // Service 1: حاسبة الموزع
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                        border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.15f)),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
+                    Card(, modifier = Modifier
                             .weight(1f)
                             .height(90.dp)
                             .clickable { onNavigateToSubScreen("distributor") }
@@ -1019,18 +911,14 @@ fun HomeTab(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Default.Calculate, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.Calculate, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text("حاسبة الموزع", color = PureWhite, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("حاسبة الموزع", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                         }
                     }
 
                     // Service 2: ديون البقالات
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                        border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.15f)),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
+                    Card(, modifier = Modifier
                             .weight(1f)
                             .height(90.dp)
                             .clickable { onNavigateToSubScreen("distributor") }
@@ -1040,18 +928,14 @@ fun HomeTab(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Default.Storefront, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.Storefront, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text("ديون البقالات", color = PureWhite, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("ديون البقالات", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                         }
                     }
 
                     // Service 3: توليد كروت
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                        border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.15f)),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
+                    Card(, modifier = Modifier
                             .weight(1f)
                             .height(90.dp)
                             .clickable { onNavigateToSubScreen("mikrotik") }
@@ -1061,9 +945,9 @@ fun HomeTab(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Default.Router, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.Router, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text("توليد كروت", color = PureWhite, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("توليد كروت", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -1074,11 +958,7 @@ fun HomeTab(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     // Service 4: مخزن الكروت
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                        border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.15f)),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
+                    Card(, modifier = Modifier
                             .weight(1f)
                             .height(90.dp)
                             .clickable { onNavigateToTab(1) }
@@ -1088,18 +968,14 @@ fun HomeTab(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Default.Inventory, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.Inventory, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text("مخزن الكروت", color = PureWhite, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("مخزن الكروت", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                         }
                     }
 
                     // Service 5: مزامنة SMS
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                        border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.15f)),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
+                    Card(, modifier = Modifier
                             .weight(1f)
                             .height(90.dp)
                             .clickable { onNavigateToTab(2) }
@@ -1109,18 +985,14 @@ fun HomeTab(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Default.Sync, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.Sync, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text("مزامنة SMS", color = PureWhite, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("مزامنة SMS", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                         }
                     }
 
                     // Service 6: سندات ومصاريف
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                        border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.15f)),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
+                    Card(, modifier = Modifier
                             .weight(1f)
                             .height(90.dp)
                             .clickable { onNavigateToSubScreen("distributor") }
@@ -1130,9 +1002,9 @@ fun HomeTab(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Default.AccountBalanceWallet, contentDescription = null, tint = GoldPrimary, modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.AccountBalanceWallet, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text("سندات ومصاريف", color = PureWhite, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("سندات ومصاريف", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -1152,14 +1024,12 @@ fun HomeTab(
                 ) {
                     Text(
                         text = "خيارات سريعة وتحديثات",
-                        color = TextSecondary,
-                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "فئات كروت الشحن المتوفرة ⚡",
-                        color = PureWhite,
-                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -1172,15 +1042,13 @@ fun HomeTab(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         listOf(
-                            Triple(100, count100, Category100Cardboard),
-                            Triple(200, count200, Category200Blue),
-                            Triple(250, count250, Category250Purple)
+                            Triple(100, count100, Color(0xFFD7CCC8)),
+                            Triple(200, count200, Color(0xFF90CAF9)),
+                            Triple(250, count250, Color(0xFFCE93D8))
                         ).forEach { (category, count, color) ->
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                                border = BorderStroke(1.dp, if (isDark) color.copy(alpha = 0.25f) else color.copy(alpha = 0.15f)),
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier
+                                
+                                 color.copy(alpha = 0.25f) else color.copy(alpha = 0.15f)), modifier = Modifier
                                     .weight(1f)
                                     .height(102.dp)
                                     .testTag("cat_card_$category")
@@ -1199,20 +1067,17 @@ fun HomeTab(
                                         Icon(
                                             imageVector = Icons.Default.CardMembership,
                                             contentDescription = null,
-                                            tint = color,
-                                            modifier = Modifier.size(16.dp)
+                                            tint = color, modifier = Modifier.size(16.dp)
                                         )
                                     }
                                     Text(
                                         text = "فئة $category ر.ي",
-                                        color = TextSecondary,
-                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
                                         text = "$count كارت",
-                                        color = PureWhite,
-                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.Black
                                     )
                                 }
@@ -1226,16 +1091,14 @@ fun HomeTab(
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         listOf(
-                            Triple(300, count300, Category300Green),
-                            Triple(500, count500, Category500Turmeric),
-                            Triple(0, totalUnusedCount, BrandPrimaryRed) // Total
+                            Triple(300, count300, Color(0xFFA5D6A7)),
+                            Triple(500, count500, Color(0xFFFFCC80)),
+                            Triple(0, totalUnusedCount, MaterialTheme.colorScheme.primary) // Total
                         ).forEach { (category, count, color) ->
                             val isTotal = category == 0
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                                border = BorderStroke(1.dp, if (isDark) color.copy(alpha = 0.25f) else color.copy(alpha = 0.15f)),
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier
+                                
+                                 color.copy(alpha = 0.25f) else color.copy(alpha = 0.15f)), modifier = Modifier
                                     .weight(1f)
                                     .height(102.dp)
                                     .testTag(if (isTotal) "cat_card_total" else "cat_card_$category")
@@ -1254,20 +1117,17 @@ fun HomeTab(
                                         Icon(
                                             imageVector = if (isTotal) Icons.Default.Inventory else Icons.Default.CardMembership,
                                             contentDescription = null,
-                                            tint = color,
-                                            modifier = Modifier.size(16.dp)
+                                            tint = color, modifier = Modifier.size(16.dp)
                                         )
                                     }
                                     Text(
                                         text = if (isTotal) "إجمالي المخزون" else "فئة $category ر.ي",
-                                        color = TextSecondary,
-                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
                                         text = "$count كارت",
-                                        color = PureWhite,
-                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.Black
                                     )
                                 }
@@ -1289,14 +1149,12 @@ fun HomeTab(
             ) {
                 Text(
                     text = "اليوم",
-                    color = TextSecondary,
-                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = "العمليات وحركة اليوم 🔄",
-                    color = PureWhite,
-                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -1305,11 +1163,8 @@ fun HomeTab(
         if (todayTransactions.isEmpty()) {
             item {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = SurfaceDark.copy(alpha = 0.5f)),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.03f)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+modifier = Modifier.fillMaxWidth()
+) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1318,8 +1173,7 @@ fun HomeTab(
                     ) {
                         Text(
                             text = "لا توجد عمليات مبيعات أو مزامنة كروت مسجلة لليوم.",
-                            color = TextSecondary,
-                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -1328,12 +1182,7 @@ fun HomeTab(
         } else {
             items(todayTransactions) { transaction ->
                 val isSuccess = !transaction.cardCode.contains("غير متوفر") && !transaction.cardCode.contains("فشل") && !transaction.cardCode.contains("تجاهل")
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.04f)),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                    modifier = Modifier
+                Card(, modifier = Modifier
                         .fillMaxWidth()
                         .testTag("transaction_item_${transaction.id}")
                 ) {
@@ -1348,14 +1197,12 @@ fun HomeTab(
                         Column(horizontalAlignment = Alignment.Start) {
                             Text(
                                 text = "-${transaction.amount} ر.ي",
-                                color = if (isSuccess) BrandPrimaryRed else StatusRed,
-                                fontSize = 15.sp,
+                                color = if (isSuccess) MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
                                 text = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(transaction.createdAt)),
-                                color = TextSecondary,
-                                fontSize = 10.sp
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
@@ -1367,15 +1214,12 @@ fun HomeTab(
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
                                     text = "كرت فئة ${transaction.amount} تم بيعه بنجاح",
-                                    color = PureWhite,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     textAlign = TextAlign.Right
                                 )
                                 Text(
                                     text = "المحفظة: ${transaction.walletType} | العميل: ${transaction.phone}",
-                                    color = TextSecondary,
-                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Right
                                 )
                             }
@@ -1385,7 +1229,7 @@ fun HomeTab(
                                 modifier = Modifier
                                     .size(40.dp)
                                     .background(
-                                        if (isSuccess) BrandPrimaryRed.copy(alpha = 0.1f) else StatusRed.copy(alpha = 0.1f),
+                                        if (isSuccess) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f).copy(alpha = 0.1f),
                                         CircleShape
                                     ),
                                 contentAlignment = Alignment.Center
@@ -1393,8 +1237,7 @@ fun HomeTab(
                                 Icon(
                                     imageVector = if (isSuccess) Icons.Outlined.CheckCircle else Icons.Outlined.Warning,
                                     contentDescription = null,
-                                    tint = if (isSuccess) BrandPrimaryRed else StatusRed,
-                                    modifier = Modifier.size(20.dp)
+                                    tint = if (isSuccess) MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
@@ -1484,11 +1327,8 @@ fun CardsTab(viewModel: MainViewModel) {
         // Direct Send Switch (SMS Auto Send)
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 4.dp),
-                modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier
@@ -1501,26 +1341,21 @@ fun CardsTab(viewModel: MainViewModel) {
                         checked = isAutoSendSmsEnabled,
                         onCheckedChange = { viewModel.toggleAutoSendSms(it) },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = if (isDark) DeepBlack else Color.White,
-                            checkedTrackColor = BrandPrimaryRed,
-                            uncheckedThumbColor = TextSecondary,
-                            uncheckedTrackColor = SurfaceDark
-                        ),
-                        modifier = Modifier.testTag("sms_direct_switch")
+                            checkedThumbColor = MaterialTheme.colorScheme.background else Color.White,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.surface, modifier = Modifier.testTag("sms_direct_switch")
                     )
 
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = "تفعيل الإرسال المباشر تلقائياً (SMS)",
-                            color = BrandPrimaryRed,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Right
                         )
                         Text(
                             text = "إرسال الكود فوراً وصامتاً عند وصول إشعار إيداع في الخلفية",
-                            color = TextSecondary,
-                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Right
                         )
                     }
@@ -1535,13 +1370,8 @@ fun CardsTab(viewModel: MainViewModel) {
                     showAddCardsSection = !showAddCardsSection 
                     feedbackMsg = ""
                 },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.White
-                ),
-                contentPadding = PaddingValues(),
-                shape = RoundedCornerShape(18.dp),
-                modifier = Modifier
+                
+                contentPadding = PaddingValues(), modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
                     .testTag("btn_toggle_add_panel")
@@ -1553,7 +1383,7 @@ fun CardsTab(viewModel: MainViewModel) {
                             if (showAddCardsSection) {
                                 Brush.horizontalGradient(listOf(Color(0xFF37474F), Color(0xFF263238)))
                             } else {
-                                EmeraldGreenGradient
+                                MaterialTheme.colorScheme.primary
                             }
                         )
                         .padding(horizontal = 16.dp),
@@ -1566,15 +1396,12 @@ fun CardsTab(viewModel: MainViewModel) {
                         Icon(
                             imageVector = if (showAddCardsSection) Icons.Outlined.Close else Icons.Outlined.Add,
                             contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
+                            tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = if (showAddCardsSection) "إغلاق لوحة الإضافة السريعة" else "إضافة كروت شحن جديدة للمخزن ➕",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -1585,11 +1412,8 @@ fun CardsTab(viewModel: MainViewModel) {
         if (showAddCardsSection) {
             item {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                    border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0F000000)),
-                    shape = RoundedCornerShape(22.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 4.dp),
-                    modifier = Modifier.fillMaxWidth().testTag("add_cards_expanded_panel")
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth().testTag("add_cards_expanded_panel")
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
@@ -1598,9 +1422,7 @@ fun CardsTab(viewModel: MainViewModel) {
                     ) {
                         Text(
                             text = "تعبئة مخزون الكروت ⚙️",
-                            color = BrandPrimaryRed,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Right
                         )
 
@@ -1610,16 +1432,16 @@ fun CardsTab(viewModel: MainViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = "اختر فئة الكرت:", color = PureWhite, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                            Text(text = "اختر فئة الكرت:", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 listOf(100, 200, 250, 300, 500).forEach { cat ->
                                     val catColor = when (cat) {
-                                        100 -> Category100Cardboard
-                                        200 -> Category200Blue
-                                        250 -> Category250Purple
-                                        300 -> Category300Green
-                                        500 -> Category500Turmeric
-                                        else -> GoldPrimary
+                                        100 -> Color(0xFFD7CCC8)
+                                        200 -> Color(0xFF90CAF9)
+                                        250 -> Color(0xFFCE93D8)
+                                        300 -> Color(0xFFA5D6A7)
+                                        500 -> Color(0xFFFFCC80)
+                                        else -> MaterialTheme.colorScheme.primary
                                     }
                                     Box(
                                         modifier = Modifier
@@ -1628,22 +1450,19 @@ fun CardsTab(viewModel: MainViewModel) {
                                                 if (selectedCategoryForAdding == cat) {
                                                     catColor.copy(alpha = 0.2f)
                                                 } else {
-                                                    DeepBlack
+                                                    MaterialTheme.colorScheme.background
                                                 }
                                             )
                                             .border(
                                                 width = 1.2.dp, 
-                                                color = if (selectedCategoryForAdding == cat) catColor else catColor.copy(alpha = 0.2f), 
-                                                shape = RoundedCornerShape(16.dp)
-                                            )
+                                                color = if (selectedCategoryForAdding == cat) catColor else catColor.copy(alpha = 0.2f))
                                             .clickable { selectedCategoryForAdding = cat }
                                             .padding(horizontal = 12.dp, vertical = 6.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = cat.toString(),
-                                            color = if (selectedCategoryForAdding == cat) catColor else TextSecondary,
-                                            fontSize = 12.sp,
+                                            color = if (selectedCategoryForAdding == cat) catColor,
                                             fontWeight = FontWeight.Bold
                                         )
                                     }
@@ -1663,31 +1482,28 @@ fun CardsTab(viewModel: MainViewModel) {
                                     .clip(RoundedCornerShape(20.dp))
                                     .background(
                                         if (inputModeBulk) {
-                                            BrandPrimaryRed.copy(alpha = 0.15f)
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                                         } else {
-                                            DeepBlack
+                                            MaterialTheme.colorScheme.background
                                         }
                                     )
                                     .clickable { inputModeBulk = true }
                                     .border(
                                         width = 1.2.dp, 
                                         color = if (inputModeBulk) {
-                                            BrandPrimaryRed
+                                            MaterialTheme.colorScheme.primary
                                         } else {
                                             Color(0x1F9E9E9E)
-                                        }, 
-                                        shape = RoundedCornerShape(20.dp)
-                                    ),
-                                contentAlignment = Alignment.Center
+                                        },
+contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = "إدخل جملة (Bulk)",
                                     color = if (inputModeBulk) {
-                                        if (isDark) GlowEmeraldGreen else Color(0xFF00796B)
+                                        MaterialTheme.colorScheme.primary
                                     } else {
-                                        TextSecondary
+                                        MaterialTheme.colorScheme.onSurfaceVariant
                                     },
-                                    fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -1699,31 +1515,28 @@ fun CardsTab(viewModel: MainViewModel) {
                                     .clip(RoundedCornerShape(20.dp))
                                     .background(
                                         if (!inputModeBulk) {
-                                            BrandPrimaryRed.copy(alpha = 0.15f)
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                                         } else {
-                                            DeepBlack
+                                            MaterialTheme.colorScheme.background
                                         }
                                     )
                                     .clickable { inputModeBulk = false }
                                     .border(
                                         width = 1.2.dp, 
                                         color = if (!inputModeBulk) {
-                                            BrandPrimaryRed
+                                            MaterialTheme.colorScheme.primary
                                         } else {
                                             Color(0x1F9E9E9E)
-                                        }, 
-                                        shape = RoundedCornerShape(20.dp)
-                                    ),
-                                contentAlignment = Alignment.Center
+                                        },
+contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = "إدخال فردي (Single)",
                                     color = if (!inputModeBulk) {
-                                        if (isDark) GlowEmeraldGreen else Color(0xFF00796B)
+                                        MaterialTheme.colorScheme.primary
                                     } else {
-                                        TextSecondary
+                                        MaterialTheme.colorScheme.onSurfaceVariant
                                     },
-                                    fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -1735,17 +1548,12 @@ fun CardsTab(viewModel: MainViewModel) {
                                 value = bulkInputText,
                                 onValueChange = { bulkInputText = it; feedbackMsg = "" },
                                 label = { Text("أدخل الكروت (كرت في كل سطر)") },
-                                placeholder = { Text("أكتب كود الكرت مباشرة أو بالصيغ في كل سطر...") },
-                                modifier = Modifier.fillMaxWidth().height(110.dp).testTag("input_bulk_text"),
-                                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = PureWhite, fontSize = 13.sp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = BrandPrimaryRed,
-                                    unfocusedBorderColor = TextSecondary.copy(alpha = 0.25f),
-                                    focusedContainerColor = DeepBlack,
-                                    unfocusedContainerColor = DeepBlack
-                                ),
-                                shape = RoundedCornerShape(16.dp)
-                            )
+                                placeholder = { Text("أكتب كود الكرت مباشرة أو بالصيغ في كل سطر...") }, modifier = Modifier.fillMaxWidth().height(110.dp).testTag("input_bulk_text"),
+                                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                                
+                                    focusedContainerColor = MaterialTheme.colorScheme.background,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.background
+                                ))
                         } else {
                             if (cardFormatMode == "user_only") {
                                 OutlinedTextField(
@@ -1753,45 +1561,30 @@ fun CardsTab(viewModel: MainViewModel) {
                                     onValueChange = { singleCodeText = it; feedbackMsg = "" },
                                     label = { Text("كود كرت الشحن") },
                                     placeholder = { Text("أدخل الكود المميز للكرت هنا") },
-                                    singleLine = true,
-                                    modifier = Modifier.fillMaxWidth().testTag("input_single_code_only"),
-                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = PureWhite),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = if (isDark) GlowEmeraldGreen else Color(0xFF00796B),
-                                        unfocusedBorderColor = TextSecondary.copy(alpha = 0.25f)
-                                    ),
-                                    shape = RoundedCornerShape(16.dp)
-                                )
+                                    singleLine = true, modifier = Modifier.fillMaxWidth().testTag("input_single_code_only"),
+                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                                     MaterialTheme.colorScheme.primary
+))
                             } else {
                                 OutlinedTextField(
                                     value = singleUsernameText,
                                     onValueChange = { singleUsernameText = it; feedbackMsg = "" },
                                     label = { Text("اسم المستخدم (Username)") },
                                     placeholder = { Text("أدخل اسم المستخدم للكرت") },
-                                    singleLine = true,
-                                    modifier = Modifier.fillMaxWidth().testTag("input_single_user"),
-                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = PureWhite),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = if (isDark) GlowEmeraldGreen else Color(0xFF00796B),
-                                        unfocusedBorderColor = TextSecondary.copy(alpha = 0.25f)
-                                    ),
-                                    shape = RoundedCornerShape(16.dp)
-                                )
+                                    singleLine = true, modifier = Modifier.fillMaxWidth().testTag("input_single_user"),
+                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                                     MaterialTheme.colorScheme.primary
+))
 
                                 OutlinedTextField(
                                     value = singlePasswordText,
                                     onValueChange = { singlePasswordText = it; feedbackMsg = "" },
                                     label = { Text("كلمة المرور (Password)") },
                                     placeholder = { Text("أدخل الرقم السري للكرت") },
-                                    singleLine = true,
-                                    modifier = Modifier.fillMaxWidth().testTag("input_single_pass"),
-                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = PureWhite),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = if (isDark) GlowEmeraldGreen else Color(0xFF00796B),
-                                        unfocusedBorderColor = TextSecondary.copy(alpha = 0.25f)
-                                    ),
-                                    shape = RoundedCornerShape(16.dp)
-                                )
+                                    singleLine = true, modifier = Modifier.fillMaxWidth().testTag("input_single_pass"),
+                                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                                     MaterialTheme.colorScheme.primary
+))
                             }
                         }
 
@@ -1799,11 +1592,7 @@ fun CardsTab(viewModel: MainViewModel) {
                         if (feedbackMsg.isNotEmpty()) {
                             Text(
                                 text = feedbackMsg,
-                                color = if (feedbackSuccess) StatusGreen else StatusRed,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Right,
-                                modifier = Modifier.fillMaxWidth()
+                                color = if (feedbackSuccess) Color(0xFF4CAF50), modifier = Modifier.fillMaxWidth()
                             )
                         }
 
@@ -1861,10 +1650,8 @@ fun CardsTab(viewModel: MainViewModel) {
                                     }
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-                            contentPadding = PaddingValues(),
-                            shape = RoundedCornerShape(18.dp),
-                            modifier = Modifier
+                            
+                            contentPadding = PaddingValues(), modifier = Modifier
                                 .fillMaxWidth()
                                 .height(50.dp)
                                 .testTag("btn_save_added_cards")
@@ -1877,10 +1664,8 @@ fun CardsTab(viewModel: MainViewModel) {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "حفظ وتثبيت الكروت في المخزن ✔", 
-                                    fontWeight = FontWeight.Bold, 
-                                    fontSize = 14.sp,
-                                    color = Color.White
+                                    text = "حفظ وتثبيت الكروت في المخزن ✔",
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -1893,10 +1678,7 @@ fun CardsTab(viewModel: MainViewModel) {
         item {
             Text(
                 text = "استعراض كروت المخزن الحالية 🗃️",
-                color = PureWhite,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 textAlign = TextAlign.Right
             )
         }
@@ -1909,12 +1691,12 @@ fun CardsTab(viewModel: MainViewModel) {
             ) {
                 listOf(100, 200, 250, 300, 500).forEach { cat ->
                     val catColor = when (cat) {
-                        100 -> Category100Cardboard
-                        200 -> Category200Blue
-                        250 -> Category250Purple
-                        300 -> Category300Green
-                        500 -> Category500Turmeric
-                        else -> GoldPrimary
+                        100 -> Color(0xFFD7CCC8)
+                        200 -> Color(0xFF90CAF9)
+                        250 -> Color(0xFFCE93D8)
+                        300 -> Color(0xFFA5D6A7)
+                        500 -> Color(0xFFFFCC80)
+                        else -> MaterialTheme.colorScheme.primary
                     }
                     Box(
                         modifier = Modifier
@@ -1925,14 +1707,14 @@ fun CardsTab(viewModel: MainViewModel) {
                                 if (selectedViewCategory == cat) {
                                     catColor.copy(alpha = 0.15f)
                                 } else {
-                                    SurfaceDark
+                                    MaterialTheme.colorScheme.surface
                                 }
                             )
                             .clickable { selectedViewCategory = cat }
                             .border(
                                 BorderStroke(
                                     width = 1.5.dp, 
-                                    color = if (selectedViewCategory == cat) catColor else Color(0x1F9E9E9E)
+                                    color = if (selectedViewCategory == cat) catColor
                                 ),
                                 RoundedCornerShape(22.dp)
                             )
@@ -1941,8 +1723,7 @@ fun CardsTab(viewModel: MainViewModel) {
                     ) {
                         Text(
                             text = "$cat ر.ي",
-                            color = if (selectedViewCategory == cat) catColor else TextSecondary,
-                            fontSize = 11.sp,
+                            color = if (selectedViewCategory == cat) catColor,
                             fontWeight = FontWeight.ExtraBold
                         )
                     }
@@ -1954,10 +1735,8 @@ fun CardsTab(viewModel: MainViewModel) {
         if (filteredCards.isEmpty()) {
             item {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = SurfaceDark.copy(alpha = 0.4f)),
-                    shape = RoundedCornerShape(20.dp),
-                    border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D).copy(alpha = 0.5f) else Color(0x0A000000)),
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
                 ) {
                     Box(
                         modifier = Modifier
@@ -1967,8 +1746,7 @@ fun CardsTab(viewModel: MainViewModel) {
                     ) {
                         Text(
                             text = "لا توجد أي كروت متوفرة حالياً لفئة $selectedViewCategory ر.ي في مخزنك.",
-                            color = TextSecondary,
-                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -1983,14 +1761,11 @@ fun CardsTab(viewModel: MainViewModel) {
                 }
 
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                    shape = RoundedCornerShape(20.dp),
-                    border = BorderStroke(
-                        width = 1.dp, 
-                        color = if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)
+                    
+                    
+                     MaterialTheme.colorScheme.outline
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 2.dp),
-                    modifier = Modifier
+                     0.dp else 2.dp), modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
                             cardToConfirmSell = card
@@ -2015,16 +1790,14 @@ fun CardsTab(viewModel: MainViewModel) {
                                 onClick = {
                                     cardToDelete = card
                                     showDeleteBottomSheet = true
-                                },
-                                modifier = Modifier
+                                }, modifier = Modifier
                                     .size(36.dp)
                                     .testTag("delete_card_btn_${card.id}")
                             ) {
                                 Icon(
                                     imageVector = Icons.Outlined.Delete,
                                     contentDescription = "حذف الكرت",
-                                    tint = StatusRed,
-                                    modifier = Modifier.size(18.dp)
+                                    tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp)
                                 )
                             }
 
@@ -2037,13 +1810,11 @@ fun CardsTab(viewModel: MainViewModel) {
                                 Icon(
                                     imageVector = Icons.Outlined.ContentCopy,
                                     contentDescription = "نسخ وبيع",
-                                    tint = BrandPrimaryRed,
-                                    modifier = Modifier.size(16.dp)
+                                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp)
                                 )
                                 Text(
                                     text = "النسخ والبيع",
-                                    color = BrandPrimaryRed,
-                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -2053,15 +1824,12 @@ fun CardsTab(viewModel: MainViewModel) {
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
                                   text = cardDisplayDetails,
-                                  color = PureWhite,
-                                  fontSize = 13.sp,
-                                  fontWeight = FontWeight.Bold,
+                                  color = MaterialTheme.colorScheme.onSurface,
                                   textAlign = TextAlign.Right
                             )
                             Text(
                                   text = "مُعرّف الكرت بالمخزون: #${card.id} | فئة ${card.category} ر.ي",
-                                  color = TextSecondary,
-                                  fontSize = 10.sp,
+                                  color = MaterialTheme.colorScheme.onSurfaceVariant,
                                   textAlign = TextAlign.Right
                             )
                         }
@@ -2073,11 +1841,8 @@ fun CardsTab(viewModel: MainViewModel) {
         // --- 📊 جدول عرض حالة الكروت الشامل 📊 ---
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 4.dp),
-                modifier = Modifier
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp)
             ) {
@@ -2094,8 +1859,7 @@ fun CardsTab(viewModel: MainViewModel) {
                     ) {
                         Text(
                             text = "إجمالي المطابقات: ${tableFilteredCards.size}",
-                            color = TextSecondary,
-                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold
                         )
                         Row(
@@ -2105,14 +1869,11 @@ fun CardsTab(viewModel: MainViewModel) {
                             Icon(
                                 imageVector = Icons.Outlined.Analytics,
                                 contentDescription = "مراقبة المخزون",
-                                tint = if (isDark) GlowOrangeGold else Color(0xFFE65100),
-                                modifier = Modifier.size(18.dp)
+                                tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp)
                             )
                             Text(
                                 text = "جدول مراقبة حالة الكروت الشامل 📊",
-                                color = PureWhite,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 textAlign = TextAlign.Right
                             )
                         }
@@ -2124,18 +1885,13 @@ fun CardsTab(viewModel: MainViewModel) {
                         onValueChange = { tableSearchQuery = it },
                         label = { Text("ابحث برقم الكرت، المستخدم، أو الكود...") },
                         placeholder = { Text("مثال: 777123...") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = PureWhite),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = PureWhite,
-                            unfocusedTextColor = PureWhite,
-                            focusedBorderColor = if (isDark) GlowOrangeGold else Color(0xFFE65100),
-                            unfocusedBorderColor = TextSecondary.copy(alpha = 0.2f)
-                        ),
-                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true, modifier = Modifier.fillMaxWidth(),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                         MaterialTheme.colorScheme.secondary
+),
+                        
                         leadingIcon = {
-                            Icon(imageVector = Icons.Default.Search, contentDescription = "بحث", tint = TextSecondary)
+                            Icon(imageVector = Icons.Default.Search, contentDescription = "بحث", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     )
 
@@ -2147,11 +1903,7 @@ fun CardsTab(viewModel: MainViewModel) {
                         // Category Filters (Chips)
                         Text(
                             text = "تصفية الفئة المحددة:",
-                            color = TextSecondary,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Right,
-                            modifier = Modifier.fillMaxWidth()
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth()
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -2167,14 +1919,13 @@ fun CardsTab(viewModel: MainViewModel) {
                                         .height(30.dp)
                                         .clip(RoundedCornerShape(15.dp))
                                         .background(
-                                            if (isSelected) (if (isDark) GlowOrangeGold.copy(alpha = 0.15f) else Color(0xFFE65100).copy(alpha = 0.12f))
-                                            else SurfaceDark.copy(alpha = 0.4f)
+                                            if (isSelected) (Color(0xFFFF9800).copy(alpha = 0.15f).copy(alpha = 0.12f)).copy(alpha = 0.4f)
                                         )
                                         .clickable { tableCategoryFilter = cat }
                                         .border(
                                             BorderStroke(
                                                 width = 1.dp,
-                                                color = if (isSelected) (if (isDark) GlowOrangeGold else Color(0xFFE65100)) else Color(0x1F9E9E9E)
+                                                color = if (isSelected) (MaterialTheme.colorScheme.secondary)
                                             ),
                                             RoundedCornerShape(15.dp)
                                         ),
@@ -2182,8 +1933,7 @@ fun CardsTab(viewModel: MainViewModel) {
                                 ) {
                                     Text(
                                         text = cat,
-                                        color = if (isSelected) (if (isDark) GlowOrangeGold else Color(0xFFE65100)) else TextSecondary,
-                                        fontSize = 10.sp,
+                                        color = if (isSelected) (MaterialTheme.colorScheme.secondary),
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -2193,11 +1943,7 @@ fun CardsTab(viewModel: MainViewModel) {
                         // Status Filters (Chips)
                         Text(
                             text = "تصفية حالة الكرت:",
-                            color = TextSecondary,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Right,
-                            modifier = Modifier.fillMaxWidth()
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth()
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -2215,12 +1961,12 @@ fun CardsTab(viewModel: MainViewModel) {
                                         .background(
                                             if (isSelected) {
                                                 when (status) {
-                                                    "متاحة" -> StatusGreen.copy(alpha = 0.15f)
-                                                    "الكل" -> (if (isDark) GlowOrangeGold.copy(alpha = 0.15f) else Color(0xFFE65100).copy(alpha = 0.12f))
+                                                    "متاحة" -> Color(0xFF4CAF50).copy(alpha = 0.15f)
+                                                    "الكل" -> (Color(0xFFFF9800).copy(alpha = 0.15f).copy(alpha = 0.12f))
                                                     "تم توزيعها" -> Color(0xFF1E88E5).copy(alpha = 0.15f)
-                                                    else -> StatusRed.copy(alpha = 0.15f)
+                                                    else -> MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
                                                 }
-                                            } else SurfaceDark.copy(alpha = 0.4f)
+                                            }.copy(alpha = 0.4f)
                                         )
                                         .clickable { tableStatusFilter = status }
                                         .border(
@@ -2228,12 +1974,12 @@ fun CardsTab(viewModel: MainViewModel) {
                                                 width = 1.dp,
                                                 color = if (isSelected) {
                                                     when (status) {
-                                                        "متاحة" -> StatusGreen
-                                                        "الكل" -> (if (isDark) GlowOrangeGold else Color(0xFFE65100))
+                                                        "متاحة" -> Color(0xFF4CAF50)
+                                                        "الكل" -> (MaterialTheme.colorScheme.secondary)
                                                         "تم توزيعها" -> Color(0xFF1E88E5)
-                                                        else -> StatusRed
+                                                        else -> MaterialTheme.colorScheme.error
                                                     }
-                                                } else Color(0x1F9E9E9E)
+                                                }
                                             ),
                                             RoundedCornerShape(15.dp)
                                         ),
@@ -2243,13 +1989,12 @@ fun CardsTab(viewModel: MainViewModel) {
                                         text = status,
                                         color = if (isSelected) {
                                             when (status) {
-                                                "متاحة" -> StatusGreen
-                                                "الكل" -> (if (isDark) GlowOrangeGold else Color(0xFFE65100))
+                                                "متاحة" -> Color(0xFF4CAF50)
+                                                "الكل" -> (MaterialTheme.colorScheme.secondary)
                                                 "تم توزيعها" -> Color(0xFF1E88E5)
-                                                else -> StatusRed
+                                                else -> MaterialTheme.colorScheme.error
                                             }
-                                        } else TextSecondary,
-                                        fontSize = 9.sp,
+                                        },
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -2261,22 +2006,22 @@ fun CardsTab(viewModel: MainViewModel) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)), RoundedCornerShape(12.dp))
+                            .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline), RoundedCornerShape(12.dp))
                             .clip(RoundedCornerShape(12.dp))
                     ) {
                         // Table Header row
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(if (isDark) Color(0xFF161616) else Color(0x0A000000))
+                                .background(MaterialTheme.colorScheme.outline)
                                 .padding(horizontal = 12.dp, vertical = 10.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = "الحالة", color = PureWhite, fontWeight = FontWeight.Bold, fontSize = 11.sp, modifier = Modifier.weight(1.5f), textAlign = TextAlign.Center)
-                            Text(text = "الفئة", color = PureWhite, fontWeight = FontWeight.Bold, fontSize = 11.sp, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text(text = "كود / بيانات الكارت", color = PureWhite, fontWeight = FontWeight.Bold, fontSize = 11.sp, modifier = Modifier.weight(3f), textAlign = TextAlign.Right)
-                            Text(text = "م", color = PureWhite, fontWeight = FontWeight.Bold, fontSize = 11.sp, modifier = Modifier.weight(0.5f), textAlign = TextAlign.Center)
+                            Text(text = "الحالة", color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1.5f), textAlign = TextAlign.Center)
+                            Text(text = "الفئة", color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Text(text = "كود / بيانات الكارت", color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(3f), textAlign = TextAlign.Right)
+                            Text(text = "م", color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(0.5f), textAlign = TextAlign.Center)
                         }
 
                         // Table Rows
@@ -2287,7 +2032,7 @@ fun CardsTab(viewModel: MainViewModel) {
                                     .padding(24.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(text = "لا توجد كروت مطابقة للفلاتر المحددة.", color = TextSecondary, fontSize = 11.sp)
+                                Text(text = "لا توجد كروت مطابقة للفلاتر المحددة.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         } else {
                             tableFilteredCards.take(40).forEachIndexed { index, card ->
@@ -2296,7 +2041,7 @@ fun CardsTab(viewModel: MainViewModel) {
                                 } else {
                                     card.code
                                 }
-                                val rowBg = if (index % 2 == 0) Color.Transparent else (if (isDark) Color(0xFF1C1C1C).copy(alpha = 0.5f) else Color(0x05000000))
+                                val rowBg = if (index % 2 == 0) Color.Transparent else (MaterialTheme.colorScheme.outline)
                                 
                                 Row(
                                     modifier = Modifier
@@ -2325,11 +2070,11 @@ fun CardsTab(viewModel: MainViewModel) {
                                             "منتهية ⚠️"
                                         }
                                         val badgeColor = if (!card.used) {
-                                            StatusGreen
+                                            Color(0xFF4CAF50)
                                         } else if (card.id % 2 == 0) {
                                             Color(0xFF1E88E5)
                                         } else {
-                                            StatusRed
+                                            MaterialTheme.colorScheme.error
                                         }
                                         Box(
                                             modifier = Modifier
@@ -2340,7 +2085,6 @@ fun CardsTab(viewModel: MainViewModel) {
                                             Text(
                                                 text = badgeText,
                                                 color = badgeColor,
-                                                fontSize = 9.sp,
                                                 fontWeight = FontWeight.Bold
                                             )
                                         }
@@ -2349,47 +2093,39 @@ fun CardsTab(viewModel: MainViewModel) {
                                     // Category Column (weight 1)
                                     Text(
                                         text = "${card.category} ر.ي",
-                                        color = PureWhite,
-                                        fontSize = 11.sp,
-                                        modifier = Modifier.weight(1f),
+                                        color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f),
                                         textAlign = TextAlign.Center
                                     )
 
                                     // Card Details Column (weight 3)
                                     Text(
                                         text = cardDisplayDetails,
-                                        color = PureWhite,
-                                        fontSize = 11.sp,
-                                        modifier = Modifier.weight(3f),
-                                        textAlign = TextAlign.Right,
+                                        color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(3f),
                                         maxLines = 1
                                     )
 
                                     // Index Column (weight 0.5)
                                     Text(
                                         text = "${index + 1}",
-                                        color = TextSecondary,
-                                        fontSize = 10.sp,
-                                        modifier = Modifier.weight(0.5f),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(0.5f),
                                         textAlign = TextAlign.Center
                                     )
                                 }
                                 if (index < tableFilteredCards.take(40).size - 1) {
-                                    HorizontalDivider(color = if (isDark) Color(0xFF222222) else Color(0x05000000))
+                                    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                                 }
                             }
                             if (tableFilteredCards.size > 40) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(if (isDark) Color(0xFF161616) else Color(0x0A000000))
+                                        .background(MaterialTheme.colorScheme.outline)
                                         .padding(8.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
                                         text = "يتم عرض أول 40 كارت فقط من إجمالي ${tableFilteredCards.size}... استخدم الفلاتر والبحث للتحديد الدقيق.",
-                                        color = TextSecondary,
-                                        fontSize = 9.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         textAlign = TextAlign.Center
                                     )
                                 }
@@ -2417,11 +2153,7 @@ fun CardsTab(viewModel: MainViewModel) {
             },
             title = {
                 Text(
-                    text = "تأكيد بيع ومشاركة الكرت 💸",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp,
-                    textAlign = TextAlign.Right,
-                    modifier = Modifier.fillMaxWidth()
+                    text = "تأكيد بيع ومشاركة الكرت 💸", modifier = Modifier.fillMaxWidth()
                 )
             },
             text = {
@@ -2432,23 +2164,16 @@ fun CardsTab(viewModel: MainViewModel) {
                 ) {
                     Text(
                         text = "هل تريد بيع هذا الكرت وتسجيله في التقارير ومشاركته؟",
-                        color = PureWhite,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier.fillMaxWidth()
+                        color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth()
                     )
                     
                     Spacer(modifier = Modifier.height(4.dp))
                     
                     Text(
                         text = "تفاصيل الكرت:\n$cardDisplayDetails",
-                        color = if (isDark) GlowOrangeGold else Color(0xFFE65100),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier
+                        color = MaterialTheme.colorScheme.secondary, modifier = Modifier
                             .fillMaxWidth()
-                            .background(SurfaceDark.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
                             .padding(10.dp)
                     )
 
@@ -2456,10 +2181,7 @@ fun CardsTab(viewModel: MainViewModel) {
 
                     Text(
                         text = "تحديد محفظة العميل للمشاركة والفتح المباشر:",
-                        color = TextSecondary,
-                        fontSize = 11.sp,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier.fillMaxWidth()
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth()
                     )
 
                     Row(
@@ -2475,9 +2197,9 @@ fun CardsTab(viewModel: MainViewModel) {
                                     .weight(1f)
                                     .height(32.dp)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isSelected) GlowOrangeGold.copy(alpha = 0.2f) else SurfaceDark)
+                                    .background(if (isSelected) Color(0xFFFF9800).copy(alpha = 0.2f))
                                     .border(
-                                        BorderStroke(1.dp, if (isSelected) GlowOrangeGold else Color(0x1F9E9E9E)),
+                                        BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.secondary),
                                         RoundedCornerShape(8.dp)
                                     )
                                     .clickable { selectedShareWallet = wallet },
@@ -2485,8 +2207,7 @@ fun CardsTab(viewModel: MainViewModel) {
                              ) {
                                 Text(
                                     text = if (wallet == "جيب") "محفظة كاش" else wallet,
-                                    color = if (isSelected) GlowOrangeGold else TextSecondary,
-                                    fontSize = 11.sp,
+                                    color = if (isSelected) Color(0xFFFF9800),
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -2512,11 +2233,9 @@ fun CardsTab(viewModel: MainViewModel) {
                             showConfirmSellDialog = false
                             cardToConfirmSell = null
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = if (isDark) GlowEmeraldGreen else Color(0xFF2E7D32)),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().height(44.dp)
+                         MaterialTheme.colorScheme.primary), modifier = Modifier.fillMaxWidth().height(44.dp)
                     ) {
-                        Text("بيع ومشاركة عبر تطبيق $selectedShareWallet 🚀", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text("بيع ومشاركة عبر تطبيق $selectedShareWallet 🚀", color = MaterialTheme.colorScheme.onSurface)
                     }
 
                     Button(
@@ -2535,30 +2254,22 @@ fun CardsTab(viewModel: MainViewModel) {
                             showConfirmSellDialog = false
                             cardToConfirmSell = null
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = if (isDark) GlowOrangeGold else Color(0xFFE65100)),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().height(44.dp)
+                         MaterialTheme.colorScheme.secondary), modifier = Modifier.fillMaxWidth().height(44.dp)
                     ) {
-                        Text("بيع ونسخ الكود فقط 📋", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text("بيع ونسخ الكود فقط 📋", color = MaterialTheme.colorScheme.onSurface)
                     }
 
                     OutlinedButton(
                         onClick = {
                             showConfirmSellDialog = false
                             cardToConfirmSell = null
-                        },
-                        border = BorderStroke(1.dp, TextSecondary.copy(alpha = 0.5f)),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().height(44.dp)
+                        }, modifier = Modifier.fillMaxWidth().height(44.dp)
                     ) {
-                        Text("تراجع / رجوع عادي ✖", fontSize = 11.sp, color = TextSecondary, fontWeight = FontWeight.Bold)
+                        Text("تراجع / رجوع عادي ✖", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
                     }
                 }
             },
-            dismissButton = null,
-            containerColor = SurfaceDark,
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.border(BorderStroke(1.5.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x1F000000)), RoundedCornerShape(20.dp))
+            dismissButton = null, modifier = Modifier.border(BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline), RoundedCornerShape(20.dp))
         )
     }
 
@@ -2575,10 +2286,10 @@ fun CardsTab(viewModel: MainViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                    .background(SurfaceDark)
+                    .background(MaterialTheme.colorScheme.surface)
                     .clickable(enabled = false) {} // prevent click-through
                     .border(
-                        BorderStroke(1.5.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x1F000000)),
+                        BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline),
                         RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
                     )
                     .padding(24.dp),
@@ -2591,33 +2302,22 @@ fun CardsTab(viewModel: MainViewModel) {
                         .width(40.dp)
                         .height(4.dp)
                         .clip(CircleShape)
-                        .background(TextSecondary.copy(alpha = 0.4f))
+                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
                         .align(Alignment.CenterHorizontally)
                 )
 
                 Text(
                     text = "تأكيد حذف الكارت ⚠️",
-                    color = StatusRed,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    textAlign = TextAlign.Right,
-                    modifier = Modifier.fillMaxWidth()
+                    color = MaterialTheme.colorScheme.error, modifier = Modifier.fillMaxWidth()
                 )
 
                 Text(
                     text = "هل أنت متأكد من رغبتك في حذف هذا الكارت من المخزن؟ لا يمكن التراجع عن هذا الإجراء لاحقاً.",
-                    color = PureWhite,
-                    fontSize = 13.sp,
-                    textAlign = TextAlign.Right,
-                    modifier = Modifier.fillMaxWidth()
+                    color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth()
                 )
 
                 // Card details preview inside sheet
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = DeepBlack),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, TextSecondary.copy(alpha = 0.15f)),
-                    modifier = Modifier.fillMaxWidth()
+                Card(, modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
                         modifier = Modifier.padding(14.dp),
@@ -2630,15 +2330,12 @@ fun CardsTab(viewModel: MainViewModel) {
                             } else {
                                 cardToDelete!!.code
                             },
-                            color = PureWhite,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Right
                         )
                         Text(
                             text = "فئة ${cardToDelete!!.category} ر.ي | معرّف الكرت: #${cardToDelete!!.id}",
-                            color = TextSecondary,
-                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Right
                         )
                     }
@@ -2651,12 +2348,9 @@ fun CardsTab(viewModel: MainViewModel) {
                     // Cancel Button
                     Button(
                         onClick = { showDeleteBottomSheet = false; cardToDelete = null },
-                        border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x1F000000)),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = PureWhite),
-                        shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier.weight(1f).height(46.dp)
+                         MaterialTheme.colorScheme.outline), modifier = Modifier.weight(1f).height(46.dp)
                     ) {
-                        Text("إلغاء", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text("إلغاء", fontWeight = FontWeight.Bold)
                     }
 
                     // Delete Confirm Button
@@ -2666,10 +2360,7 @@ fun CardsTab(viewModel: MainViewModel) {
                             Toast.makeText(context, "تم حذف الكارت بنجاح 🗑️", Toast.LENGTH_SHORT).show()
                             showDeleteBottomSheet = false
                             cardToDelete = null
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = StatusRed, contentColor = Color.White),
-                        shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier
+                        }, modifier = Modifier
                             .weight(1.2f)
                             .height(46.dp)
                             .testTag("confirm_delete_btn")
@@ -2679,7 +2370,7 @@ fun CardsTab(viewModel: MainViewModel) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(imageVector = Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Text("تأكيد الحذف", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("تأكيد الحذف", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -2792,14 +2483,10 @@ fun ReportsTab(viewModel: MainViewModel) {
         // 📊 Header Statistics Card with segmented wallet sources visualization
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                border = BorderStroke(1.5.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier
                     .fillMaxWidth()
-                    .testTag("history_stats_header_card"),
-                elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 4.dp)
-            ) {
+                    .testTag("history_stats_header_card")) {
                 Column(
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -2814,19 +2501,16 @@ fun ReportsTab(viewModel: MainViewModel) {
                         Icon(
                             imageVector = Icons.Outlined.Analytics,
                             contentDescription = "Analytics Icon",
-                            tint = if (isDark) GlowOrangeGold else Color(0xFFE65100),
-                            modifier = Modifier.size(24.dp)
+                            tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(24.dp)
                         )
                         Text(
                             text = "تحليلات وإحصائيات العمليات والمحافظ 📊",
-                            color = PureWhite,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Right
                         )
                     }
 
-                    Divider(color = if (isDark) Color(0xFF2D2D2D) else Color(0x0F000000), thickness = 1.dp)
+                    Divider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
 
                     // Unified KPIs Row (Total Count / Total Value)
                     Row(
@@ -2835,10 +2519,8 @@ fun ReportsTab(viewModel: MainViewModel) {
                     ) {
                         // Total Value Card
                         Card(
-                            colors = CardDefaults.cardColors(containerColor = DeepBlack),
-                            shape = RoundedCornerShape(16.dp),
-                            border = BorderStroke(1.dp, if (isDark) Color(0xFF212121) else Color(0x05000000)),
-                            modifier = Modifier.weight(1.2f)
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.weight(1.2f)
                         ) {
                             Column(
                                 modifier = Modifier.padding(12.dp),
@@ -2847,14 +2529,12 @@ fun ReportsTab(viewModel: MainViewModel) {
                             ) {
                                 Text(
                                     text = "إجمالي قيمة المبيعات",
-                                    color = TextSecondary,
-                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
                                     text = "$totalValue ر.ي",
-                                    color = if (isDark) GlowOrangeGold else Color(0xFFE65100),
-                                    fontSize = 15.sp,
+                                    color = MaterialTheme.colorScheme.secondary,
                                     fontWeight = FontWeight.Black
                                 )
                             }
@@ -2862,10 +2542,8 @@ fun ReportsTab(viewModel: MainViewModel) {
 
                         // Total Count Card
                         Card(
-                            colors = CardDefaults.cardColors(containerColor = DeepBlack),
-                            shape = RoundedCornerShape(16.dp),
-                            border = BorderStroke(1.dp, if (isDark) Color(0xFF212121) else Color(0x05000000)),
-                            modifier = Modifier.weight(1f)
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.weight(1f)
                         ) {
                             Column(
                                 modifier = Modifier.padding(12.dp),
@@ -2874,14 +2552,12 @@ fun ReportsTab(viewModel: MainViewModel) {
                             ) {
                                 Text(
                                     text = "الكروت الموزعة",
-                                    color = TextSecondary,
-                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
                                     text = "$totalCount كرت",
-                                    color = if (isDark) GlowEmeraldGreen else Color(0xFF2E7D32),
-                                    fontSize = 15.sp,
+                                    color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.Black
                                 )
                             }
@@ -2891,11 +2567,7 @@ fun ReportsTab(viewModel: MainViewModel) {
                     // Segmented Data Visualization Bar Chart (Clean progress-like block)
                     Text(
                         text = "توزيع حجم العمليات وقيمتها حسب المحفظة المانحة:",
-                        color = TextSecondary,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier.fillMaxWidth()
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth()
                     )
 
                     // Proportional horizontal bar layout
@@ -2906,8 +2578,7 @@ fun ReportsTab(viewModel: MainViewModel) {
                     val otherPercentage = if (totalSum > 0) otherValue / totalSum else if (totalCount > 0 && otherCount > 0) otherCount.toDouble() / totalCount else 0.25
 
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()
                     ) {
                         // Segmented bar
                         Row(
@@ -2915,7 +2586,7 @@ fun ReportsTab(viewModel: MainViewModel) {
                                 .fillMaxWidth()
                                 .height(14.dp)
                                 .clip(RoundedCornerShape(7.dp))
-                                .background(if (isDark) Color(0xFF1E1E1E) else Color(0x0F000000))
+                                .background(MaterialTheme.colorScheme.outline)
                         ) {
                             if (jeebPercentage > 0) {
                                 Box(
@@ -2946,7 +2617,7 @@ fun ReportsTab(viewModel: MainViewModel) {
                                     modifier = Modifier
                                         .fillMaxHeight()
                                         .weight(otherPercentage.toFloat().coerceAtLeast(0.02f))
-                                        .background(if (isDark) GlowOrangeGold else Color(0xFFE65100))
+                                        .background(MaterialTheme.colorScheme.secondary)
                                 )
                             }
                         }
@@ -2958,20 +2629,20 @@ fun ReportsTab(viewModel: MainViewModel) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(if (isDark) GlowOrangeGold else Color(0xFFE65100)))
-                                Text("أخرى: ${(otherPercentage * 100).toInt()}%", color = TextSecondary, fontSize = 9.sp)
+                                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondary))
+                                Text("أخرى: ${(otherPercentage * 100).toInt()}%", color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color(0xFFE91E63)))
-                                Text("ون كاش: ${(oneCashPercentage * 100).toInt()}%", color = TextSecondary, fontSize = 9.sp)
+                                Text("ون كاش: ${(oneCashPercentage * 100).toInt()}%", color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color(0xFFAB47BC)))
-                                Text("جوالي: ${(jawaliPercentage * 100).toInt()}%", color = TextSecondary, fontSize = 9.sp)
+                                Text("جوالي: ${(jawaliPercentage * 100).toInt()}%", color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color(0xFF2196F3)))
-                                Text("محفظة كاش: ${(jeebPercentage * 100).toInt()}%", color = TextSecondary, fontSize = 9.sp)
+                                Text("محفظة كاش: ${(jeebPercentage * 100).toInt()}%", color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
@@ -2991,8 +2662,8 @@ fun ReportsTab(viewModel: MainViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = "$jeebCount كارت | $jeebValue ر.ي", color = PureWhite, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                            Text(text = "محفظة كاش", color = Color(0xFF90CAF9), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text(text = "$jeebCount كارت | $jeebValue ر.ي", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                            Text(text = "محفظة كاش", color = Color(0xFF90CAF9), fontWeight = FontWeight.Bold)
                         }
 
                         // Jawali Row details
@@ -3005,8 +2676,8 @@ fun ReportsTab(viewModel: MainViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = "$jawaliCount كارت | $jawaliValue ر.ي", color = PureWhite, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                            Text(text = "محفظة جوالي (Jawali)", color = Color(0xFFE1BEE7), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text(text = "$jawaliCount كارت | $jawaliValue ر.ي", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                            Text(text = "محفظة جوالي (Jawali)", color = Color(0xFFE1BEE7), fontWeight = FontWeight.Bold)
                         }
 
                         // One Cash Row details
@@ -3019,22 +2690,22 @@ fun ReportsTab(viewModel: MainViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = "$oneCashCount كارت | $oneCashValue ر.ي", color = PureWhite, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                            Text(text = "محفظة ون كاش (One Cash)", color = Color(0xFFF8BBD0), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text(text = "$oneCashCount كارت | $oneCashValue ر.ي", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                            Text(text = "محفظة ون كاش (One Cash)", color = Color(0xFFF8BBD0), fontWeight = FontWeight.Bold)
                         }
 
                         // Others Row details
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(if (isDark) GlowOrangeGold.copy(alpha = 0.05f) else Color(0xFFE65100).copy(alpha = 0.04f), RoundedCornerShape(10.dp))
-                                .border(BorderStroke(0.5.dp, if (isDark) GlowOrangeGold.copy(alpha = 0.15f) else Color(0xFFE65100).copy(alpha = 0.1f)), RoundedCornerShape(10.dp))
+                                .background(Color(0xFFFF9800).copy(alpha = 0.05f).copy(alpha = 0.04f), RoundedCornerShape(10.dp))
+                                .border(BorderStroke(0.5.dp, Color(0xFFFF9800).copy(alpha = 0.15f).copy(alpha = 0.1f)), RoundedCornerShape(10.dp))
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = "$otherCount كارت | $otherValue ر.ي", color = PureWhite, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                            Text(text = "طرق سداد ومبيعات أخرى", color = if (isDark) GlowOrangeGold else Color(0xFFE65100), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text(text = "$otherCount كارت | $otherValue ر.ي", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                            Text(text = "طرق سداد ومبيعات أخرى", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -3044,11 +2715,8 @@ fun ReportsTab(viewModel: MainViewModel) {
         // Date input filter section
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 4.dp),
-                modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -3057,9 +2725,8 @@ fun ReportsTab(viewModel: MainViewModel) {
                 ) {
                     Text(
                         text = "فلترة وتصفية التقارير والعمليات 📅",
-                        color = if (isDark) GlowOrangeGold else Color(0xFFE65100),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Bold
                     )
 
                     OutlinedTextField(
@@ -3067,17 +2734,10 @@ fun ReportsTab(viewModel: MainViewModel) {
                         onValueChange = { filterDateByFormatted = it },
                         label = { Text("أدخل التاريخ للبحث والتصفية (yyyy-MM-dd)") },
                         placeholder = { Text("مثال: ${SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())}") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth().testTag("filter_date_input"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center, color = PureWhite),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = PureWhite,
-                            unfocusedTextColor = PureWhite,
-                            focusedBorderColor = if (isDark) GlowOrangeGold else Color(0xFFF57C00),
-                            unfocusedBorderColor = TextSecondary.copy(alpha = 0.25f)
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
+                        singleLine = true, modifier = Modifier.fillMaxWidth().testTag("filter_date_input"),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface),
+                         MaterialTheme.colorScheme.secondary
+))
                     
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -3088,10 +2748,8 @@ fun ReportsTab(viewModel: MainViewModel) {
                             onClick = { 
                                 filterDateByFormatted = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) 
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-                            contentPadding = PaddingValues(),
-                            shape = RoundedCornerShape(14.dp),
-                            modifier = Modifier
+                            
+                            contentPadding = PaddingValues(), modifier = Modifier
                                 .weight(1f)
                                 .height(44.dp)
                         ) {
@@ -3101,7 +2759,7 @@ fun ReportsTab(viewModel: MainViewModel) {
                                     .background(OrangeGoldGradient),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("اليوم", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                Text("اليوم", fontWeight = FontWeight.Bold)
                             }
                         }
 
@@ -3112,25 +2770,19 @@ fun ReportsTab(viewModel: MainViewModel) {
                                 cal.add(Calendar.DATE, -1)
                                 filterDateByFormatted = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.time) 
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = SurfaceDark, contentColor = if (isDark) GlowOrangeGold else Color(0xFFE65100)),
-                            border = BorderStroke(1.dp, (if (isDark) GlowOrangeGold else Color(0xFFE65100)).copy(alpha = 0.3f)),
-                            shape = RoundedCornerShape(14.dp),
-                            modifier = Modifier
+                             MaterialTheme.colorScheme.secondary),
+                             MaterialTheme.colorScheme.secondary).copy(alpha = 0.3f)), modifier = Modifier
                                 .weight(1f)
                                 .height(44.dp)
                         ) {
-                            Text("الأمس", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text("الأمس", fontWeight = FontWeight.Bold)
                         }
                     }
 
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = "خيارات التصدير والطباعة 🖨️",
-                        color = TextSecondary,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier.fillMaxWidth()
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth()
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -3158,17 +2810,14 @@ fun ReportsTab(viewModel: MainViewModel) {
                                     headers = headers,
                                     rows = rows
                                 )
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(1f).height(38.dp)
+                            }, modifier = Modifier.weight(1f).height(38.dp)
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Outlined.PictureAsPdf, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White)
-                                Text("PDF", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = Color.White)
+                                Icon(Icons.Outlined.PictureAsPdf, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface)
+                                Text("PDF", color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
 
@@ -3193,17 +2842,14 @@ fun ReportsTab(viewModel: MainViewModel) {
                                     headers = headers,
                                     rows = rows
                                 )
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(1f).height(38.dp)
+                            }, modifier = Modifier.weight(1f).height(38.dp)
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Outlined.TableChart, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White)
-                                Text("Excel", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = Color.White)
+                                Icon(Icons.Outlined.TableChart, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface)
+                                Text("Excel", color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
 
@@ -3227,17 +2873,14 @@ fun ReportsTab(viewModel: MainViewModel) {
                                     headers = headers,
                                     rows = rows
                                 )
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6)),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(1f).height(38.dp)
+                            }, modifier = Modifier.weight(1f).height(38.dp)
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.Print, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.White)
-                                Text("طباعة", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = Color.White)
+                                Icon(Icons.Default.Print, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface)
+                                Text("طباعة", color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
                     }
@@ -3254,9 +2897,7 @@ fun ReportsTab(viewModel: MainViewModel) {
             ) {
                 Text(
                     text = "مصدر العمليات المحفظية:",
-                    color = TextSecondary,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Right
                 )
                 Row(
@@ -3279,9 +2920,9 @@ fun ReportsTab(viewModel: MainViewModel) {
                                 .clip(RoundedCornerShape(19.dp))
                                 .background(
                                     if (isSelected) {
-                                        if (isDark) GlowOrangeGold.copy(alpha = 0.15f) else Color(0xFFE65100).copy(alpha = 0.12f)
+                                        Color(0xFFFF9800).copy(alpha = 0.15f).copy(alpha = 0.12f)
                                     } else {
-                                        SurfaceDark
+                                        MaterialTheme.colorScheme.surface
                                     }
                                 )
                                 .clickable { selectedSourceFilter = opt.first }
@@ -3289,9 +2930,9 @@ fun ReportsTab(viewModel: MainViewModel) {
                                     BorderStroke(
                                         width = 1.dp,
                                         color = if (isSelected) {
-                                            if (isDark) GlowOrangeGold else Color(0xFFE65100)
+                                            MaterialTheme.colorScheme.secondary
                                         } else {
-                                            if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)
+                                            MaterialTheme.colorScheme.outline
                                         }
                                     ),
                                     RoundedCornerShape(19.dp)
@@ -3302,11 +2943,10 @@ fun ReportsTab(viewModel: MainViewModel) {
                             Text(
                                 text = opt.second,
                                 color = if (isSelected) {
-                                    if (isDark) GlowOrangeGold else Color(0xFFE65100)
+                                    MaterialTheme.colorScheme.secondary
                                 } else {
-                                    TextSecondary
+                                    MaterialTheme.colorScheme.onSurfaceVariant
                                 },
-                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -3324,9 +2964,7 @@ fun ReportsTab(viewModel: MainViewModel) {
             ) {
                 Text(
                     text = "حالة العمليات التوزيعية:",
-                    color = TextSecondary,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Right
                 )
                 Row(
@@ -3348,9 +2986,9 @@ fun ReportsTab(viewModel: MainViewModel) {
                                 .clip(RoundedCornerShape(19.dp))
                                 .background(
                                     if (isSelected) {
-                                        if (isDark) GlowOrangeGold.copy(alpha = 0.15f) else Color(0xFFE65100).copy(alpha = 0.12f)
+                                        Color(0xFFFF9800).copy(alpha = 0.15f).copy(alpha = 0.12f)
                                     } else {
-                                        SurfaceDark
+                                        MaterialTheme.colorScheme.surface
                                     }
                                 )
                                 .clickable { selectedStatusFilter = opt.first }
@@ -3358,9 +2996,9 @@ fun ReportsTab(viewModel: MainViewModel) {
                                     BorderStroke(
                                         width = 1.dp,
                                         color = if (isSelected) {
-                                            if (isDark) GlowOrangeGold else Color(0xFFE65100)
+                                            MaterialTheme.colorScheme.secondary
                                         } else {
-                                            if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)
+                                            MaterialTheme.colorScheme.outline
                                         }
                                     ),
                                     RoundedCornerShape(19.dp)
@@ -3371,11 +3009,10 @@ fun ReportsTab(viewModel: MainViewModel) {
                             Text(
                                 text = opt.second,
                                 color = if (isSelected) {
-                                    if (isDark) GlowOrangeGold else Color(0xFFE65100)
+                                    MaterialTheme.colorScheme.secondary
                                 } else {
-                                    TextSecondary
+                                    MaterialTheme.colorScheme.onSurfaceVariant
                                 },
-                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -3395,21 +3032,18 @@ fun ReportsTab(viewModel: MainViewModel) {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(StatusRed.copy(alpha = 0.15f))
+                            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.15f))
                             .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
                         Text(
                             text = "$totalPendingQty معلقة",
-                            color = StatusRed,
-                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.error,
                             fontWeight = FontWeight.Bold
                         )
                     }
                     Text(
                         text = "العمليات المعلقة التي تتطلب توزيعاً يدوياً ⏳",
-                        color = PureWhite,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Right
                     )
                 }
@@ -3418,24 +3052,19 @@ fun ReportsTab(viewModel: MainViewModel) {
             if (filteredPendingApprovals.isEmpty()) {
                 item {
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = SurfaceDark.copy(alpha = 0.4f)),
-                        shape = RoundedCornerShape(20.dp),
-                        border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                        modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth()
                     ) {
                         Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                            Text(text = "لا توجد عمليات معلقة مع مطابقة هذه الفلاتر اليوم.", color = TextSecondary, fontSize = 12.sp)
+                            Text(text = "لا توجد عمليات معلقة مع مطابقة هذه الفلاتر اليوم.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
             } else {
                 items(filteredPendingApprovals) { pending ->
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                        border = BorderStroke(1.dp, StatusRed.copy(alpha = 0.3f)),
-                        shape = RoundedCornerShape(16.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 1.5.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        
+                         0.dp else 1.5.dp), modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
                             modifier = Modifier
@@ -3446,8 +3075,7 @@ fun ReportsTab(viewModel: MainViewModel) {
                         ) {
                             Text(
                                 text = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(pending.createdAt)),
-                                color = TextSecondary,
-                                fontSize = 11.sp
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
 
                             Column(horizontalAlignment = Alignment.End) {
@@ -3462,37 +3090,31 @@ fun ReportsTab(viewModel: MainViewModel) {
                                             "جوالي" -> Color(0xFFA5D6A7)
                                             "ون كاش" -> Color(0xFFF48FB1)
                                             else -> Color(0xFFFFCC80)
-                                        },
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier
-                                            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(4.dp))
+                                        }, modifier = Modifier
+                                            .background( RoundedCornerShape(4.dp))
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     )
                                     Text(
                                         text = "مبلغ ${pending.amount} ر.ي",
-                                        color = PureWhite,
-                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
                                 Text(
                                     text = "الزبون/الحساب: ${pending.phone}",
-                                    color = TextSecondary,
-                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Right
                                 )
                                 Box(
                                     modifier = Modifier
                                         .padding(top = 4.dp)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(StatusRed.copy(alpha = 0.1f))
+                                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.1f))
                                         .padding(horizontal = 8.dp, vertical = 3.dp)
                                 ) {
                                     Text(
                                         text = if (pending.isAccountCode) "رمز حساب - تتطلب مطابقة يدوية ⚠️" else "تتطلب توزيع كارت يدوي ⏳",
-                                        color = StatusRed,
-                                        fontSize = 9.sp,
+                                        color = MaterialTheme.colorScheme.error,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -3514,21 +3136,18 @@ fun ReportsTab(viewModel: MainViewModel) {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(StatusGreen.copy(alpha = 0.15f))
+                            .background(Color(0xFF4CAF50).copy(alpha = 0.15f))
                             .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
                         Text(
                             text = "${filteredDeposits.count { it.isShared }} ناجحة",
-                            color = StatusGreen,
-                            fontSize = 11.sp,
+                            color = Color(0xFF4CAF50),
                             fontWeight = FontWeight.Bold
                         )
                     }
                     Text(
                         text = "العمليات الناجحة (سجل التحصيل الموزع) ✔",
-                        color = PureWhite,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Right
                     )
                 }
@@ -3539,24 +3158,19 @@ fun ReportsTab(viewModel: MainViewModel) {
             if (successDeposits.isEmpty()) {
                 item {
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = SurfaceDark.copy(alpha = 0.4f)),
-                        shape = RoundedCornerShape(20.dp),
-                        border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                        modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth()
                     ) {
                         Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                            Text(text = "لا توجد عمليات ناجحة مسجلة اليوم.", color = TextSecondary, fontSize = 12.sp)
+                            Text(text = "لا توجد عمليات ناجحة مسجلة اليوم.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
             } else {
                 items(successDeposits) { deposit ->
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                        border = BorderStroke(1.dp, StatusGreen.copy(alpha = 0.2f)),
-                        shape = RoundedCornerShape(16.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 1.5.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        
+                         0.dp else 1.5.dp), modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
                             modifier = Modifier
@@ -3567,8 +3181,7 @@ fun ReportsTab(viewModel: MainViewModel) {
                         ) {
                             Text(
                                 text = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(deposit.createdAt)),
-                                color = TextSecondary,
-                                fontSize = 11.sp
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
 
                             Column(horizontalAlignment = Alignment.End) {
@@ -3583,24 +3196,19 @@ fun ReportsTab(viewModel: MainViewModel) {
                                             "جوالي" -> Color(0xFFA5D6A7)
                                             "ون كاش" -> Color(0xFFF48FB1)
                                             else -> Color(0xFFFFCC80)
-                                        },
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier
-                                            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(4.dp))
+                                        }, modifier = Modifier
+                                            .background( RoundedCornerShape(4.dp))
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     )
                                     Text(
                                         text = "مبلغ ${deposit.amount} ر.ي",
-                                        color = PureWhite,
-                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
                                 Text(
                                     text = "الزبون: ${deposit.phone}",
-                                    color = TextSecondary,
-                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Right
                                 )
                                 Row(
@@ -3611,13 +3219,12 @@ fun ReportsTab(viewModel: MainViewModel) {
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(8.dp))
-                                            .background(StatusGreen.copy(alpha = 0.1f))
+                                            .background(Color(0xFF4CAF50).copy(alpha = 0.1f))
                                             .padding(horizontal = 8.dp, vertical = 3.dp)
                                     ) {
                                         Text(
                                             text = "تم تسليم الكرت للزبون بنجاح ✔",
-                                            color = StatusGreen,
-                                            fontSize = 9.sp,
+                                            color = Color(0xFF4CAF50),
                                             fontWeight = FontWeight.Bold
                                         )
                                     }
@@ -3633,10 +3240,7 @@ fun ReportsTab(viewModel: MainViewModel) {
         item {
             Text(
                 text = "سجل الكروت الموزعة (Transaction Log) 📋",
-                color = PureWhite,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 textAlign = TextAlign.Right
             )
         }
@@ -3644,13 +3248,11 @@ fun ReportsTab(viewModel: MainViewModel) {
         if (filteredTransactions.isEmpty()) {
             item {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = SurfaceDark.copy(alpha = 0.4f)),
-                    shape = RoundedCornerShape(20.dp),
-                    border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                    modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth()
                 ) {
                     Box(modifier = Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                        Text(text = "لا توجد معاملات مبيعات مسجلة بالتاريخ المحدد.", color = TextSecondary, fontSize = 12.sp)
+                        Text(text = "لا توجد معاملات مبيعات مسجلة بالتاريخ المحدد.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -3658,11 +3260,10 @@ fun ReportsTab(viewModel: MainViewModel) {
             items(filteredTransactions) { trans ->
                 val isSuccessfulDistribution = !trans.cardCode.contains("غير متوفر") && !trans.cardCode.contains("فشل")
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                    border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 1.5.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    
+                     MaterialTheme.colorScheme.outline),
+                    
+                     0.dp else 1.5.dp), modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
                         modifier = Modifier
@@ -3679,39 +3280,31 @@ fun ReportsTab(viewModel: MainViewModel) {
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isSuccessfulDistribution) StatusGreen.copy(alpha = 0.1f) else StatusRed.copy(alpha = 0.1f))
+                                    .background(if (isSuccessfulDistribution) Color(0xFF4CAF50).copy(alpha = 0.1f).copy(alpha = 0.1f))
                                     .padding(horizontal = 8.dp, vertical = 3.dp)
                             ) {
                                 Text(
                                     text = if (isSuccessfulDistribution) "ناجح ✔" else "فاشل ✖",
-                                    color = if (isSuccessfulDistribution) StatusGreen else StatusRed,
-                                    fontSize = 10.sp,
+                                    color = if (isSuccessfulDistribution) Color(0xFF4CAF50),
                                     fontWeight = FontWeight.Bold
                                 )
                             }
                             
                             Text(
                                 text = "كرت فئة ${trans.amount} ر.ي",
-                                color = if (isDark) GlowOrangeGold else Color(0xFFE65100),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp
+                                color = MaterialTheme.colorScheme.secondary,
+                                fontWeight = FontWeight.Bold
                             )
                         }
 
                         Text(
                             text = "تفاصيل الكرت: ${trans.cardCode}",
-                            color = PureWhite,
-                            fontSize = 12.sp,
-                            textAlign = TextAlign.Right,
-                            modifier = Modifier.fillMaxWidth()
+                            color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth()
                         )
 
                         Text(
                             text = "تاريخ العملية: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(trans.createdAt))} | هاتف العميل: ${trans.phone}",
-                            color = TextSecondary,
-                            fontSize = 10.sp,
-                            textAlign = TextAlign.Right,
-                            modifier = Modifier.fillMaxWidth()
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -3720,10 +3313,7 @@ fun ReportsTab(viewModel: MainViewModel) {
 
         // Bottom Summary Panel (Vibrant Orange-Gold Gradient Card)
         item {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier
+            Card(modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 12.dp)
                     .testTag("reports_summary_card")
@@ -3738,35 +3328,34 @@ fun ReportsTab(viewModel: MainViewModel) {
                 ) {
                     Text(
                         text = "ملخص عمليات وتوزيع اليوم 📊",
-                        color = Color.Black,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 15.sp
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.ExtraBold
                     )
 
-                    HorizontalDivider(color = Color.Black.copy(alpha = 0.15f))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "$totalSoldQty كارت", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Text(text = "إجمالي الكروت المباعة التلقائية:", color = Color.Black.copy(alpha = 0.8f), fontSize = 13.sp)
+                        Text(text = "$totalSoldQty كارت", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                        Text(text = "إجمالي الكروت المباعة التلقائية:", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
                     }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "$totalPendingQty عملية", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Text(text = "إجمالي العمليات المعلقة حالياً:", color = Color.Black.copy(alpha = 0.8f), fontSize = 13.sp)
+                        Text(text = "$totalPendingQty عملية", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                        Text(text = "إجمالي العمليات المعلقة حالياً:", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
                     }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "$totalRevenue ر.ي", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
-                        Text(text = "إجمالي المبالغ المالية المحصلة الموزعة:", color = Color.Black.copy(alpha = 0.8f), fontSize = 13.sp)
+                        Text(text = "$totalRevenue ر.ي", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.ExtraBold)
+                        Text(text = "إجمالي المبالغ المالية المحصلة الموزعة:", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
                     }
                 }
             }
@@ -3775,9 +3364,7 @@ fun ReportsTab(viewModel: MainViewModel) {
 
     // floating action button to export CSV
     FloatingActionButton(
-        onClick = { exportTransactionsToCsv(context, filteredTransactions, filterDateByFormatted) },
-        containerColor = Color.Transparent,
-        modifier = Modifier
+        onClick = { exportTransactionsToCsv(context, filteredTransactions, filterDateByFormatted) }, modifier = Modifier
             .align(Alignment.BottomStart)
             .padding(16.dp)
             .height(50.dp)
@@ -3798,14 +3385,12 @@ fun ReportsTab(viewModel: MainViewModel) {
                 Icon(
                     imageVector = Icons.Outlined.Share,
                     contentDescription = "تصدير CSV",
-                    tint = Color.White,
-                    modifier = Modifier.size(18.dp)
+                    tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp)
                 )
                 Text(
                     text = "تصدير CSV 📥",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -3856,11 +3441,8 @@ fun SettingsTab(
         // Option toggles (SMS and Notifications)
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                border = BorderStroke(1.dp, if (isDarkTheme) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = if (isDarkTheme) 0.dp else 4.dp),
-                modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -3869,9 +3451,8 @@ fun SettingsTab(
                 ) {
                     Text(
                         text = "خيارات إرسال ومشاركة كروت الشحن ⚙️",
-                        color = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
                     )
 
                     // 1. Switch Auto Send SMS in background
@@ -3884,14 +3465,13 @@ fun SettingsTab(
                             checked = isAutoSendSmsEnabled,
                             onCheckedChange = { viewModel.toggleAutoSendSms(it) },
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = if (isDarkTheme) DeepBlack else Color.White,
-                                checkedTrackColor = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2)
+                                checkedThumbColor = if (isDarkTheme) MaterialTheme.colorScheme.background else Color.White,
+                                checkedTrackColor = if (isDarkTheme) MaterialTheme.colorScheme.primary
                             )
                         )
                         Text(
                             text = "تفعيل الإرسال المباشر تلقائياً (SMS)",
-                            color = PureWhite,
-                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -3906,14 +3486,13 @@ fun SettingsTab(
                             checked = isNotificationClickComposeEnabled,
                             onCheckedChange = { viewModel.toggleNotificationClickCompose(it) },
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = if (isDarkTheme) DeepBlack else Color.White,
-                                checkedTrackColor = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2)
+                                checkedThumbColor = if (isDarkTheme) MaterialTheme.colorScheme.background else Color.White,
+                                checkedTrackColor = if (isDarkTheme) MaterialTheme.colorScheme.primary
                             )
                         )
                         Text(
                             text = "مشاركة فتح الرسالة تلقائياً من الإشعار",
-                            color = PureWhite,
-                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -3922,9 +3501,8 @@ fun SettingsTab(
                     
                     Text(
                         text = "تفعيل دفعات المحافظ المدعومة 💳",
-                        color = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
+                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
                     )
 
                     // Switches for each individual wallet
@@ -3947,14 +3525,13 @@ fun SettingsTab(
                                 checked = isEnabled,
                                 onCheckedChange = onToggle,
                                 colors = SwitchDefaults.colors(
-                                    checkedThumbColor = if (isDarkTheme) DeepBlack else Color.White,
-                                    checkedTrackColor = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2)
+                                    checkedThumbColor = if (isDarkTheme) MaterialTheme.colorScheme.background else Color.White,
+                                    checkedTrackColor = if (isDarkTheme) MaterialTheme.colorScheme.primary
                                 )
                             )
                             Text(
                                 text = label,
-                                color = PureWhite,
-                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Medium
                             )
                         }
@@ -3966,11 +3543,8 @@ fun SettingsTab(
         // Customizable Templates & Brand
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                border = BorderStroke(1.dp, if (isDarkTheme) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = if (isDarkTheme) 0.dp else 4.dp),
-                modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -3979,38 +3553,27 @@ fun SettingsTab(
                 ) {
                     Text(
                         text = "تخصيص البيانات والرسائل 📝",
-                        color = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
                     )
 
                     // Network Name
                     OutlinedTextField(
                         value = editNetworkNameText,
                         onValueChange = { editNetworkNameText = it; feedbackMsg = "" },
-                        label = { Text("اسم الشبكة (بدون التفعيل)") },
-                        modifier = Modifier.fillMaxWidth().testTag("settings_network_name_fld"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = PureWhite),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2),
-                            unfocusedBorderColor = TextSecondary.copy(alpha = 0.25f)
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
+                        label = { Text("اسم الشبكة (بدون التفعيل)") }, modifier = Modifier.fillMaxWidth().testTag("settings_network_name_fld"),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                         MaterialTheme.colorScheme.primary
+))
 
                     // Message Template
                     OutlinedTextField(
                         value = editSmsTemplateText,
                         onValueChange = { editSmsTemplateText = it; feedbackMsg = "" },
-                        label = { Text("صيغة الرسالة المرسلة تلقائياً لشبكتك") },
-                        modifier = Modifier.fillMaxWidth().height(115.dp).testTag("settings_sms_tpl_fld"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = PureWhite, fontSize = 13.sp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2),
-                            unfocusedBorderColor = TextSecondary.copy(alpha = 0.25f)
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
+                        label = { Text("صيغة الرسالة المرسلة تلقائياً لشبكتك") }, modifier = Modifier.fillMaxWidth().height(115.dp).testTag("settings_sms_tpl_fld"),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                         MaterialTheme.colorScheme.primary
+))
 
                     // Change Serial directly
                     OutlinedTextField(
@@ -4018,39 +3581,26 @@ fun SettingsTab(
                         onValueChange = { editNewSerialText = it; feedbackMsg = "" },
                         label = { Text("تغيير السيريال (كلمة السر الجديدة)") },
                         placeholder = { Text("أدخل رمز تفعيل أو باسورد جديد مباشرة هنا") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth().testTag("settings_password_fld"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = PureWhite),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2),
-                            unfocusedBorderColor = TextSecondary.copy(alpha = 0.25f)
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
+                        singleLine = true, modifier = Modifier.fillMaxWidth().testTag("settings_password_fld"),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                         MaterialTheme.colorScheme.primary
+))
 
                     // Configurable auto-approved amounts
                     OutlinedTextField(
                         value = editAutoApprovedAmountsText,
                         onValueChange = { editAutoApprovedAmountsText = it; feedbackMsg = "" },
-                        label = { Text("فئات المبالغ المعتمدة تلقائياً (مفصولة بفاصلة ,)") },
+                        label = { Text("فئات المبالغ المعتمدة تلقائياً (مفصولة بفاصلة )") },
                         placeholder = { Text("مثال: 100,200,300,500,1000") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth().testTag("settings_approved_amounts_fld"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = PureWhite),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2),
-                            unfocusedBorderColor = TextSecondary.copy(alpha = 0.25f)
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
+                        singleLine = true, modifier = Modifier.fillMaxWidth().testTag("settings_approved_amounts_fld"),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                         MaterialTheme.colorScheme.primary
+))
 
                     if (feedbackMsg.isNotEmpty()) {
                         Text(
                             text = feedbackMsg,
-                            color = if (feedbackSuccess) StatusGreen else StatusRed,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.fillMaxWidth(),
+                            color = if (feedbackSuccess) Color(0xFF4CAF50), modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Right
                         )
                     }
@@ -4075,10 +3625,8 @@ fun SettingsTab(
                             feedbackSuccess = true
                             feedbackMsg = "تم حفظ التعديلات والبيانات الجديدة بنجاح! ✔"
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-                        contentPadding = PaddingValues(),
-                        shape = RoundedCornerShape(18.dp),
-                        modifier = Modifier
+                        
+                        contentPadding = PaddingValues(), modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)
                             .testTag("settings_save_btn")
@@ -4086,11 +3634,11 @@ fun SettingsTab(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(PurplePinkGradient)
+                                .background(Brush.horizontalGradient(listOf(Color(0xFF9C27B0), Color(0xFFFF4081))))
                                 .padding(horizontal = 16.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("حفظ التخصيصات والبيانات", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text("حفظ التخصيصات والبيانات", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -4100,11 +3648,8 @@ fun SettingsTab(
         // Appearance
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                border = BorderStroke(1.dp, if (isDarkTheme) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = if (isDarkTheme) 0.dp else 4.dp),
-                modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier
@@ -4117,22 +3662,20 @@ fun SettingsTab(
                         checked = isDarkTheme,
                         onCheckedChange = { viewModel.setDarkTheme(it) },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = if (isDarkTheme) DeepBlack else Color.White,
-                            checkedTrackColor = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2)
+                            checkedThumbColor = if (isDarkTheme) MaterialTheme.colorScheme.background else Color.White,
+                            checkedTrackColor = if (isDarkTheme) MaterialTheme.colorScheme.primary
                         )
                     )
 
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = "مظهر التطبيق والموضوع 🌗",
-                            color = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp
+                            color = if (isDarkTheme) MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = "التبديل بين المظهر الداكن (OLED) والمظهر الفاتح",
-                            color = TextSecondary,
-                            fontSize = 10.sp
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -4145,10 +3688,8 @@ fun SettingsTab(
             var isSyncing by remember { mutableStateOf(false) }
 
             Card(
-                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                border = BorderStroke(1.dp, if (isDarkTheme) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier.fillMaxWidth().testTag("cloud_sync_card")
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth().testTag("cloud_sync_card")
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -4157,26 +3698,19 @@ fun SettingsTab(
                 ) {
                     Text(
                         text = "النسخ الاحتياطي والمزامنة السحابية ☁️",
-                        color = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
+                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "يتيح لك النظام السحابي حفظ بياناتك وتحديثها باستمرار على الخادم وحمايتها من الضياع أو استعادتها عند إعادة التثبيت.",
-                        color = TextSecondary,
-                        fontSize = 11.sp,
-                        textAlign = TextAlign.End,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 16.sp
                     )
 
                     if (syncStatusMessage.isNotEmpty()) {
                         Text(
                             text = syncStatusMessage,
-                            color = GoldAccent,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.fillMaxWidth()
+                            color = GoldAccent, modifier = Modifier.fillMaxWidth()
                         )
                     }
 
@@ -4196,13 +3730,10 @@ fun SettingsTab(
                                     }
                                 }
                             },
-                            enabled = !isSyncing,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F1B2A)),
-                            border = BorderStroke(1.dp, if (isDarkTheme) GlowPurplePink.copy(alpha = 0.5f) else Color(0xFF7B1FA2)),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(1f)
+                            enabled = !isSyncing),
+                             Color(0xFFFF4081).copy(alpha = 0.5f)), modifier = Modifier.weight(1f)
                         ) {
-                            Text(text = "استيراد البيانات 📥", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PureWhite)
+                            Text(text = "استيراد البيانات 📥", color = MaterialTheme.colorScheme.onSurface)
                         }
 
                         // Manual Backup / Sync Now button
@@ -4218,11 +3749,9 @@ fun SettingsTab(
                                 }
                             },
                             enabled = !isSyncing,
-                            colors = ButtonDefaults.buttonColors(containerColor = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2)),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.weight(1f)
+                             MaterialTheme.colorScheme.primary), modifier = Modifier.weight(1f)
                         ) {
-                            Text(text = "مزامنة الآن 🔄", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PureWhite)
+                            Text(text = "مزامنة الآن 🔄", color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
@@ -4232,10 +3761,8 @@ fun SettingsTab(
         // Developer info card fixed at the bottom
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = SurfaceDark.copy(alpha = 0.6f)),
-                border = BorderStroke(1.dp, if (isDarkTheme) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier.fillMaxWidth().testTag("developer_card")
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth().testTag("developer_card")
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -4244,9 +3771,7 @@ fun SettingsTab(
                 ) {
                     Text(
                         text = "معلومات المطور والدعم الفني 👨‍💻",
-                        color = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp,
+                        color = if (isDarkTheme) MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.Center
                     )
                     HorizontalDivider(color = GoldAccent.copy(alpha = 0.15f))
@@ -4254,15 +3779,15 @@ fun SettingsTab(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "كيان سوفت", color = PureWhite, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                        Text(text = "المطور:", color = TextSecondary, fontSize = 12.sp)
+                        Text(text = "كيان سوفت", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                        Text(text = "المطور:", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "773303455", color = if (isDarkTheme) GlowPurplePink else Color(0xFF7B1FA2), fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)
-                        Text(text = "للتواصل:", color = TextSecondary, fontSize = 12.sp)
+                        Text(text = "773303455", color = if (isDarkTheme) MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold)
+                        Text(text = "للتواصل:", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -4271,16 +3796,12 @@ fun SettingsTab(
         // Logout panel/Action button
         item {
             Button(
-                onClick = onLogout,
-                colors = ButtonDefaults.buttonColors(containerColor = StatusRed.copy(alpha = 0.1f), contentColor = StatusRed),
-                border = BorderStroke(1.dp, StatusRed.copy(alpha = 0.3f)),
-                shape = RoundedCornerShape(18.dp),
-                modifier = Modifier.fillMaxWidth().height(50.dp).testTag("settings_logout_btn")
+                onClick = onLogout, modifier = Modifier.fillMaxWidth().height(50.dp).testTag("settings_logout_btn")
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Outlined.ExitToApp, contentDescription = "تسجيل خروج", modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "إلغاء التفعيل والاشتراك الحالي", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text(text = "إلغاء التفعيل والاشتراك الحالي", fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -4317,17 +3838,12 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
             ) {
                 Text(
                     text = "العملاء الاستثنائيين 👑",
-                    color = if (isDark) GlowPurplePink else Color(0xFF7B1FA2),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Right
                 )
                 Text(
                     text = "قم بإضافة وتوجيه حسابات العملاء الذين يرسلون دفعات بأرقام محافظ مجهولة لتصل لرقمه الشخصي تلقائياً.",
-                    color = TextSecondary,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Right,
-                    modifier = Modifier.padding(top = 4.dp)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp)
                 )
             }
         }
@@ -4335,11 +3851,8 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
         // Add Customer Form Card
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                shape = RoundedCornerShape(20.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 4.dp),
-                modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.padding(18.dp),
@@ -4348,9 +3861,8 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
                 ) {
                     Text(
                         text = "إضافة عميل جديد 👤",
-                        color = if (isDark) GlowPurplePink else Color(0xFF7B1FA2),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
                     )
 
                     // Partner/Customer Name
@@ -4359,21 +3871,15 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
                         onValueChange = { customerName = it },
                         label = { Text("اسم العميل / الزبون") },
                         placeholder = { Text("مثال: احمد جابر حسن") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth().testTag("special_cust_name"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = PureWhite),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (isDark) GlowPurplePink else Color(0xFF7B1FA2),
-                            unfocusedBorderColor = TextSecondary.copy(alpha = 0.25f)
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
+                        singleLine = true, modifier = Modifier.fillMaxWidth().testTag("special_cust_name"),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                         MaterialTheme.colorScheme.primary
+))
 
                     // Wallet Type selection via customizable Chips (Material 3 style)
                     Text(
                         text = "نوع المحفظة:",
-                        color = TextSecondary,
-                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Bold
                     )
                     
@@ -4386,19 +3892,18 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
                             FilterChip(
                                 selected = walletType == option,
                                 onClick = { walletType = option },
-                                label = { Text(if (option == "جيب") "محفظة كاش" else option, fontSize = 11.sp, fontWeight = FontWeight.Bold) },
-                                shape = RoundedCornerShape(22.dp),
+                                label = { Text(if (option == "جيب") "محفظة كاش" else option,
+                                
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = (if (isDark) GlowPurplePink else Color(0xFF7B1FA2)).copy(alpha = 0.15f),
-                                    selectedLabelColor = if (isDark) GlowPurplePink else Color(0xFF7B1FA2),
-                                    containerColor = SurfaceDark,
-                                    labelColor = TextSecondary
+                                    selectedContainerColor = (MaterialTheme.colorScheme.primary).copy(alpha = 0.15f),
+                                    selectedLabelColor = MaterialTheme.colorScheme.primary,
+                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                                 ),
                                 border = FilterChipDefaults.filterChipBorder(
                                     enabled = true,
                                     selected = walletType == option,
-                                    borderColor = if (walletType == option) (if (isDark) GlowPurplePink else Color(0xFF7B1FA2)) else TextSecondary.copy(alpha = 0.2f),
-                                    selectedBorderColor = if (isDark) GlowPurplePink else Color(0xFF7B1FA2),
+                                    borderColor = if (walletType == option) (MaterialTheme.colorScheme.primary).copy(alpha = 0.2f),
+                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
                                     borderWidth = 1.dp,
                                     selectedBorderWidth = 1.5.dp
                                 )
@@ -4414,19 +3919,18 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
                             FilterChip(
                                 selected = walletType == option,
                                 onClick = { walletType = option },
-                                label = { Text(if (option == "جيب") "محفظة كاش" else option, fontSize = 11.sp, fontWeight = FontWeight.Bold) },
-                                shape = RoundedCornerShape(22.dp),
+                                label = { Text(if (option == "جيب") "محفظة كاش" else option,
+                                
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = (if (isDark) GlowPurplePink else Color(0xFF7B1FA2)).copy(alpha = 0.15f),
-                                    selectedLabelColor = if (isDark) GlowPurplePink else Color(0xFF7B1FA2),
-                                    containerColor = SurfaceDark,
-                                    labelColor = TextSecondary
+                                    selectedContainerColor = (MaterialTheme.colorScheme.primary).copy(alpha = 0.15f),
+                                    selectedLabelColor = MaterialTheme.colorScheme.primary,
+                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                                 ),
                                 border = FilterChipDefaults.filterChipBorder(
                                     enabled = true,
                                     selected = walletType == option,
-                                    borderColor = if (walletType == option) (if (isDark) GlowPurplePink else Color(0xFF7B1FA2)) else TextSecondary.copy(alpha = 0.2f),
-                                    selectedBorderColor = if (isDark) GlowPurplePink else Color(0xFF7B1FA2),
+                                    borderColor = if (walletType == option) (MaterialTheme.colorScheme.primary).copy(alpha = 0.2f),
+                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
                                     borderWidth = 1.dp,
                                     selectedBorderWidth = 1.5.dp
                                 )
@@ -4440,15 +3944,10 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
                         onValueChange = { customerUniqueId = it },
                         label = { Text("رمز الحساب أو معرّف المحفضه للزبون") },
                         placeholder = { Text("مثال: 120025 أو الاسم كما in الكريمي") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth().testTag("special_cust_wallet_id"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = PureWhite),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (isDark) GlowPurplePink else Color(0xFF7B1FA2),
-                            unfocusedBorderColor = TextSecondary.copy(alpha = 0.25f)
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
+                        singleLine = true, modifier = Modifier.fillMaxWidth().testTag("special_cust_wallet_id"),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                         MaterialTheme.colorScheme.primary
+))
 
                     // Target / Basic Personal Phone Number
                     OutlinedTextField(
@@ -4456,17 +3955,12 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
                         onValueChange = { basicPhone = it },
                         label = { Text("رقم هاتفه الأساسي الشخصي للمطابقة") },
                         placeholder = { Text("مثال: 770118275") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth().testTag("special_cust_phone_id"),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = PureWhite),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (isDark) GlowPurplePink else Color(0xFF7B1FA2),
-                            unfocusedBorderColor = TextSecondary.copy(alpha = 0.25f)
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
+                        singleLine = true, modifier = Modifier.fillMaxWidth().testTag("special_cust_phone_id"),
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
+                         MaterialTheme.colorScheme.primary
+))
 
-                    // Add Customer Button styled with PurplePinkGradient
+                    // Add Customer Button styled with Brush.horizontalGradient(listOf(Color(0xFF9C27B0), Color(0xFFFF4081)))
                     Button(
                         onClick = {
                             if (customerName.trim().isEmpty() || customerUniqueId.trim().isEmpty() || basicPhone.trim().isEmpty()) {
@@ -4484,20 +3978,18 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
                             basicPhone = ""
                             Toast.makeText(context, "تم إضافة العميل الاستثنائي وتنشيط المطابقة بنجاح! 🎉", Toast.LENGTH_SHORT).show()
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-                        contentPadding = PaddingValues(),
-                        shape = RoundedCornerShape(18.dp),
-                        modifier = Modifier
+                        
+                        contentPadding = PaddingValues(), modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)
                     ) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(PurplePinkGradient),
+                                .background(Brush.horizontalGradient(listOf(Color(0xFF9C27B0), Color(0xFFFF4081)))),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("إضافة وحفظ العميل", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text("إضافة وحفظ العميل", fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -4516,51 +4008,42 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
                     onClick = {
                         exportCustomerTransactionsToCsv(context, allMappings, allTransactions)
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-                    contentPadding = PaddingValues(),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier
+                    
+                    contentPadding = PaddingValues(), modifier = Modifier
                         .height(42.dp)
                         .testTag("export_csv_button")
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxHeight()
-                            .background(EmeraldGreenGradient)
+                            .background(MaterialTheme.colorScheme.primary)
                             .padding(horizontal = 14.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(imageVector = Icons.Outlined.Share, contentDescription = "تصدير CSV", modifier = Modifier.size(16.dp), tint = Color.White)
+                            Icon(imageVector = Icons.Outlined.Share, contentDescription = "تصدير CSV", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurface)
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("تصدير الحسابات (CSV)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Text("تصدير الحسابات (CSV)", color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
 
                 Text(
                     text = "قائمة العملاء الاستثنائيين النشطة 📂 (${allMappings.size})",
-                    color = TextSecondary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                )
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Bold)
             }
         }
 
         if (allMappings.isEmpty()) {
             item {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = SurfaceDark.copy(alpha = 0.5f)),
-                    shape = RoundedCornerShape(20.dp),
-                    border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                    modifier = Modifier.fillMaxWidth()
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = "لا يوجد أي زبائن استثنائيين مضافين حالياً.",
-                        color = TextSecondary,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().padding(24.dp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth().padding(24.dp)
                     )
                 }
             }
@@ -4568,11 +4051,8 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
             items(allMappings.size) { index ->
                 val mapping = allMappings[index]
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                    border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 2.dp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(14.dp),
@@ -4586,14 +4066,13 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
                                 contentDescription = "حذف العميل",
-                                tint = StatusRed
+                                tint = MaterialTheme.colorScheme.error
                             )
                         }
 
                         // Info
                         Column(
-                            horizontalAlignment = Alignment.End,
-                            modifier = Modifier.weight(1f)
+                            horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f)
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -4617,23 +4096,17 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
                                     else -> Color(0xFFB39DDB)
                                 }
                                 Surface(
-                                    color = badgeBgColor,
-                                    shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.padding(end = 8.dp)
+                                    color = badgeBgColor, modifier = Modifier.padding(end = 8.dp)
                                 ) {
                                     Text(
                                         text = mapping.walletType,
-                                        color = badgeTextColor,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                        color = badgeTextColor, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                     )
                                 }
                                 
                                 Text(
                                     text = mapping.customerName.ifEmpty { "عميل استثنائي" },
-                                    color = PureWhite,
-                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -4642,15 +4115,13 @@ fun SpecialCustomersTab(viewModel: MainViewModel) {
                             
                             Text(
                                 text = "رمز مجهول: ${mapping.customerUniqueId}",
-                                color = if (isDark) GlowPurplePink else Color(0xFF7B1FA2),
-                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Normal
                             )
                             
                             Text(
                                 text = "رقم التوجيه (الأساسي): ${mapping.basicPhone}",
-                                color = TextSecondary,
-                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.Medium
                             )
                         }
@@ -4816,17 +4287,12 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
             ) {
                 Text(
                     text = "التفويضات المعلقة والموافقة ⏳",
-                    color = if (isDark) GlowEmeraldGreen else Color(0xFF00796B),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Right
                 )
                 Text(
                     text = "العمليات التي تنتظر موافقتك اليدوية لإرسال الكود وتأكيد حركة الدفع.",
-                    color = TextSecondary,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Right,
-                    modifier = Modifier.padding(top = 4.dp)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp)
                 )
             }
         }
@@ -4834,11 +4300,8 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
         if (allPendingApprovals.isEmpty()) {
             item {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                    border = BorderStroke(1.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000)),
-                    shape = RoundedCornerShape(20.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 2.dp),
-                    modifier = Modifier.fillMaxWidth().padding(top = 24.dp)
+border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+modifier = Modifier.fillMaxWidth().padding(top = 24.dp)
                 ) {
                     Column(
                         modifier = Modifier.padding(32.dp),
@@ -4848,23 +4311,15 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
                         Icon(
                             imageVector = Icons.Outlined.CheckCircle,
                             contentDescription = "لا توجد تفويضات",
-                            tint = if (isDark) GlowEmeraldGreen else Color(0xFF00796B),
-                            modifier = Modifier.size(54.dp)
+                            tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(54.dp)
                         )
                         Text(
                             text = "لا توجد عمليات معلقة حالياً 🎉",
-                            color = PureWhite,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth()
                         )
                         Text(
                             text = "جميع العمليات الواردة الأخرى يتم تفعيلها تلقائياً بنجاح.",
-                            color = TextSecondary,
-                            fontSize = 12.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -4873,12 +4328,9 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
             items(allPendingApprovals.size) { index ->
                 val pending = allPendingApprovals[index]
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                    border = BorderStroke(1.dp, if (isDark) GlowEmeraldGreen.copy(alpha = 0.25f) else Color(0x3BFFCC80)),
-                    shape = RoundedCornerShape(20.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 4.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+modifier = Modifier.fillMaxWidth()
+) {
                     Column(
                         modifier = Modifier.padding(18.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -4912,31 +4364,19 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
                                     else -> Color(0xFFB39DDB)
                                 }
                                 Surface(
-                                    color = badgeBgColor,
-                                    shape = RoundedCornerShape(8.dp)
-                                ) {
+                                    color = badgeBgColor) {
                                     Text(
                                         text = pending.walletType,
-                                        color = badgeTextColor,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                        color = badgeTextColor, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                     )
                                 }
 
                                 val isAutoApproved = autoApprovedAmounts.contains(pending.amount)
                                 if (!isAutoApproved) {
-                                    Surface(
-                                        color = Color(0xFFD32F2F).copy(alpha = 0.15f),
-                                        shape = RoundedCornerShape(8.dp),
-                                        border = BorderStroke(1.dp, Color(0xFFD32F2F).copy(alpha = 0.3f))
-                                    ) {
+                                    Surface( color = Color(0xFFD32F2F).copy(alpha = 0.15f) ) {
                                         Text(
                                             text = "⚠️ فئة غير معتمدة",
-                                            color = Color(0xFFEF5350),
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                            color = Color(0xFFEF5350), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                         )
                                     }
                                 }
@@ -4945,13 +4385,12 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
                             // Amount Label
                             Text(
                                 text = "فئة ${pending.amount} ر.ي",
-                                color = if (isDark) GlowEmeraldGreen else Color(0xFF00796B),
-                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold
                             )
                         }
 
-                        HorizontalDivider(color = if (isDark) Color(0xFF2D2D2D) else Color(0x0A000000))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
 
                         // Details Block
                         Column(
@@ -4960,39 +4399,33 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.End,
-                                modifier = Modifier.fillMaxWidth()
+                                horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
                                     text = pending.phone,
-                                    color = PureWhite,
-                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = ":رقم المودع/المستلم",
-                                    color = TextSecondary,
-                                    fontSize = 12.sp
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.End,
-                                modifier = Modifier.fillMaxWidth()
+                                horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
                                     text = if (pending.isAccountCode) "كود حساب (مطابقة فريدة)" else "شراء كارت مباشر",
-                                    color = if (pending.isAccountCode) (if (isDark) GlowOrangeGold else Color(0xFFE65100)) else PureWhite,
-                                    fontSize = 12.sp,
+                                    color = if (pending.isAccountCode) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.Medium
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = ":نوع الدفعة",
-                                    color = TextSecondary,
-                                    fontSize = 11.sp
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -5003,7 +4436,7 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(10.dp))
-                                    .background(if (isDark) Color(0xFF331F00) else Color(0xFFFFF3E0))
+                                    .background(MaterialTheme.colorScheme.outline)
                                     .padding(horizontal = 10.dp, vertical = 6.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
@@ -5014,18 +4447,15 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
                                         enteredPhoneNumber = ""
                                         showLinkDialog = true
                                     },
-                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                                    colors = ButtonDefaults.textButtonColors(contentColor = if (isDark) GlowOrangeGold else Color(0xFFE65100))
-                                ) {
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+) {
                                     Icon(imageVector = Icons.Default.Phone, contentDescription = "ربط", modifier = Modifier.size(14.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("ربط رقم العميل 📞", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    Text("ربط رقم العميل 📞", fontWeight = FontWeight.Bold)
                                 }
                                 Text(
                                     text = "الحساب اسم وليس رقم هاتف!",
-                                    color = if (isDark) GlowOrangeGold else Color(0xFFE65100),
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.secondary,
                                     textAlign = TextAlign.Right
                                 )
                             }
@@ -5052,12 +4482,9 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
                                         Toast.makeText(context, "تم تجاهل التحويل وحذف الإيداع بنجاح", Toast.LENGTH_SHORT).show()
                                     }
                                 },
-                                border = BorderStroke(1.dp, if (isAutoApproved) StatusRed else Color.Gray),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = if (isAutoApproved) StatusRed else Color.LightGray),
-                                shape = RoundedCornerShape(14.dp),
-                                modifier = Modifier.weight(1f).height(42.dp)
+                                 colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error), modifier = Modifier.weight(1f).height(42.dp)
                             ) {
-                                Text(if (isAutoApproved) "رفض الدفعة ✖" else "تجاهل التحويل ✖", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(if (isAutoApproved) "رفض الدفعة ✖" else "تجاهل التحويل ✖", fontWeight = FontWeight.Bold)
                             }
 
                             // Approve Button (Emerald Green style)
@@ -5076,18 +4503,16 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
                                         }
                                     }
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-                                contentPadding = PaddingValues(),
-                                shape = RoundedCornerShape(14.dp),
-                                modifier = Modifier.weight(1.3f).height(42.dp)
+                                
+                                contentPadding = PaddingValues(), modifier = Modifier.weight(1.3f).height(42.dp)
                             ) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .background(EmeraldGreenGradient),
+                                        .background(MaterialTheme.colorScheme.primary),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("موافقة وإرسال ✔", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("موافقة وإرسال ✔", fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -5107,11 +4532,7 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
             },
             title = {
                 Text(
-                    text = "ربط رقم هاتف للعميل 📞",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Right,
-                    modifier = Modifier.fillMaxWidth()
+                    text = "ربط رقم هاتف للعميل 📞", modifier = Modifier.fillMaxWidth()
                 )
             },
             text = {
@@ -5122,18 +4543,11 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
                 ) {
                     Text(
                         text = "الاسم المُستلم: ${pending.phone}",
-                        color = PureWhite,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier.fillMaxWidth()
+                        color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth()
                     )
                     Text(
                         text = "أدخل رقم الهاتف الصحيح لهذا العميل لإرسال كود الشحن إليه تلقائياً عند الموافقة وحفظه للمستقبل:",
-                        color = TextSecondary,
-                        fontSize = 11.sp,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier.fillMaxWidth()
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = enteredPhoneNumber,
@@ -5145,14 +4559,7 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
                             keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone
                         ),
                         modifier = Modifier.fillMaxWidth(),
-                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = PureWhite),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = PureWhite,
-                            unfocusedTextColor = PureWhite,
-                            focusedBorderColor = if (isDark) GlowEmeraldGreen else Color(0xFF00796B),
-                            unfocusedBorderColor = TextSecondary.copy(alpha = 0.2f)
-                        ),
-                        shape = RoundedCornerShape(12.dp)
+                        textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface)
                     )
                 }
             },
@@ -5177,11 +4584,8 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
                         } else {
                             Toast.makeText(context, "الرجاء إدخال رقم هاتف صحيح", Toast.LENGTH_SHORT).show()
                         }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = if (isDark) GlowEmeraldGreen else Color(0xFF00796B)),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("حفظ وربط ✔", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    } {
+                    Text("حفظ وربط ✔", color = MaterialTheme.colorScheme.onSurface)
                 }
             },
             dismissButton = {
@@ -5189,16 +4593,10 @@ fun PendingApprovalsTab(viewModel: MainViewModel) {
                     onClick = {
                         showLinkDialog = false
                         pendingToLink = null
-                    },
-                    border = BorderStroke(1.dp, TextSecondary.copy(alpha = 0.5f)),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("إلغاء", fontSize = 12.sp, color = TextSecondary)
+                    }) {
+                    Text("إلغاء", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-            },
-            containerColor = SurfaceDark,
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.border(BorderStroke(1.5.dp, if (isDark) Color(0xFF2D2D2D) else Color(0x1F000000)), RoundedCornerShape(20.dp))
+            }, modifier = Modifier.border(BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline), RoundedCornerShape(20.dp))
         )
     }
 }
@@ -5231,24 +4629,20 @@ fun RowScope.BottomNavItem(
                     .width(44.dp)
                     .height(26.dp)
                     .background(
-                        color = if (selected) Color(0xFFDC2626).copy(alpha = 0.1f) else Color.Transparent,
-                        shape = RoundedCornerShape(12.dp)
-                    ),
+                        color = if (selected) Color(0xFFDC2626).copy(alpha = 0.1f) else Color.Transparent),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = if (selected) selectedIcon else icon,
                     contentDescription = label,
-                    tint = if (selected) Color(0xFFDC2626) else Color(0xFF94A3B8),
-                    modifier = Modifier.size(20.dp)
+                    tint = if (selected) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp)
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = label,
-                fontSize = 10.sp,
                 fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium,
-                color = if (selected) Color(0xFFDC2626) else Color(0xFF94A3B8)
+                color = if (selected) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -5261,11 +4655,7 @@ fun DashboardMetricItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     iconColor: Color
 ) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1B1E2B)), // Dark slate card background
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, Color(0xFF282C3D)),
-        modifier = Modifier.fillMaxWidth()
+    Card( // Dark slate card background, modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
@@ -5275,22 +4665,17 @@ fun DashboardMetricItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
-                horizontalAlignment = Alignment.End,
-                modifier = Modifier.weight(1f)
+                horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = title,
-                    color = TextSecondary,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Right
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = value,
-                    color = Color.White,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Right
                 )
             }
@@ -5304,8 +4689,7 @@ fun DashboardMetricItem(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = iconColor,
-                    modifier = Modifier.size(16.dp)
+                    tint = iconColor, modifier = Modifier.size(16.dp)
                 )
             }
         }

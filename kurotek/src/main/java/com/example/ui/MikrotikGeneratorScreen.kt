@@ -76,9 +76,7 @@ fun MikrotikGeneratorScreen(
                 title = {
                     Text(
                         text = "مولد وطباعة كروت المايكروتك",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
@@ -86,24 +84,20 @@ fun MikrotikGeneratorScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "رجوع",
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF0F172A)
-                ),
-                actions = {
+actions = {
                     IconButton(onClick = {
                         Toast.makeText(context, "🔄 تم تحديث قائمة الكروت المولدة!", Toast.LENGTH_SHORT).show()
                     }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "تحديث", tint = Color.White)
+                        Icon(Icons.Default.Refresh, contentDescription = "تحديث", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             )
-        },
-        containerColor = DeepBlack
-    ) { innerPadding ->
+        }
+) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -112,31 +106,29 @@ fun MikrotikGeneratorScreen(
             // Screen internal tabs
             TabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = Color(0xFF0F172A),
-                contentColor = BrandPrimaryRed,
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
                         Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = BrandPrimaryRed
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             ) {
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("توليد الكروت", fontWeight = FontWeight.Bold, fontSize = 13.sp) },
+                    text = { Text("توليد الكروت") },
                     icon = { Icon(Icons.Default.Bolt, contentDescription = null) }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("الكروت المتاحة (${generatedCards.filter { !it.transferred }.size})", fontWeight = FontWeight.Bold, fontSize = 13.sp) },
+                    text = { Text("الكروت المتاحة (${generatedCards.filter { !it.transferred }.size})") },
                     icon = { Icon(Icons.Default.Layers, contentDescription = null) }
                 )
                 Tab(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
-                    text = { Text("إعداد المايكروتك", fontWeight = FontWeight.Bold, fontSize = 13.sp) },
+                    text = { Text("إعداد المايكروتك") },
                     icon = { Icon(Icons.Default.Router, contentDescription = null) }
                 )
             }
@@ -154,10 +146,7 @@ fun MikrotikGeneratorScreen(
                         item {
                             Text(
                                 text = "اختر فئة كروت الشبكة لتوليدها:",
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                modifier = Modifier.fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Right
                             )
                             Spacer(modifier = Modifier.height(8.dp))
@@ -171,9 +160,9 @@ fun MikrotikGeneratorScreen(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clip(RoundedCornerShape(12.dp))
-                                            .background(if (isSelected) BrandPrimaryRed else Color(0xFF0F172A))
+                                            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
                                             .border(
-                                                BorderStroke(1.dp, if (isSelected) Color.White else Color.White.copy(alpha = 0.05f)),
+                                                BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent),
                                                 RoundedCornerShape(12.dp)
                                             )
                                             .clickable { selectedCategory = cat }
@@ -182,9 +171,8 @@ fun MikrotikGeneratorScreen(
                                     ) {
                                         Text(
                                             text = if (cat == 3000) "شهري" else "$cat ر.ي",
-                                            color = Color.White,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 12.sp
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontWeight = FontWeight.Bold
                                         )
                                     }
                                 }
@@ -200,9 +188,9 @@ fun MikrotikGeneratorScreen(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clip(RoundedCornerShape(12.dp))
-                                            .background(if (isSelected) BrandPrimaryRed else Color(0xFF0F172A))
+                                            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
                                             .border(
-                                                BorderStroke(1.dp, if (isSelected) Color.White else Color.White.copy(alpha = 0.05f)),
+                                                BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent),
                                                 RoundedCornerShape(12.dp)
                                             )
                                             .clickable { selectedCategory = cat }
@@ -211,9 +199,8 @@ fun MikrotikGeneratorScreen(
                                     ) {
                                         Text(
                                             text = if (cat == 3000) "اشتراك شهري" else "$cat ر.ي",
-                                            color = Color.White,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 12.sp
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontWeight = FontWeight.Bold
                                         )
                                     }
                                 }
@@ -223,11 +210,8 @@ fun MikrotikGeneratorScreen(
                         // Code details configuration
                         item {
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
+modifier = Modifier.fillMaxWidth()
+) {
                                 Column(
                                     modifier = Modifier.padding(16.dp),
                                     verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -235,9 +219,7 @@ fun MikrotikGeneratorScreen(
                                 ) {
                                     Text(
                                         text = "خصائص كود الكرت",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
-                                        color = BrandPrimaryRed
+                                        color = MaterialTheme.colorScheme.primary
                                     )
 
                                     // Format selection
@@ -247,27 +229,25 @@ fun MikrotikGeneratorScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.clickable { formatMode = "user_only" }
+                                            verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { formatMode = "user_only" }
                                         ) {
                                             RadioButton(
                                                 selected = formatMode == "user_only",
                                                 onClick = { formatMode = "user_only" },
-                                                colors = RadioButtonDefaults.colors(selectedColor = BrandPrimaryRed)
+                                                colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
                                             )
-                                            Text("اسم مستخدم فقط", color = Color.White, fontSize = 13.sp)
+                                            Text("اسم مستخدم فقط", color = MaterialTheme.colorScheme.onSurface)
                                         }
 
                                         Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.clickable { formatMode = "user_pass" }
+                                            verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { formatMode = "user_pass" }
                                         ) {
                                             RadioButton(
                                                 selected = formatMode == "user_pass",
                                                 onClick = { formatMode = "user_pass" },
-                                                colors = RadioButtonDefaults.colors(selectedColor = BrandPrimaryRed)
+                                                colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
                                             )
-                                            Text("اسم مستخدم وكلمة مرور", color = Color.White, fontSize = 13.sp)
+                                            Text("اسم مستخدم وكلمة مرور", color = MaterialTheme.colorScheme.onSurface)
                                         }
                                     }
 
@@ -276,32 +256,14 @@ fun MikrotikGeneratorScreen(
                                         value = quantityInput,
                                         onValueChange = { quantityInput = it },
                                         label = { Text("الكمية المطلوب توليدها") },
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = BrandPrimaryRed,
-                                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                                            focusedLabelColor = BrandPrimaryRed,
-                                            unfocusedLabelColor = TextSecondary,
-                                            focusedTextColor = Color.White,
-                                            unfocusedTextColor = Color.White
-                                        ),
-                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth(),
                                         textStyle = TextAlign.Right.let { androidx.compose.ui.text.TextStyle(textAlign = TextAlign.Right) }
                                     )
 
                                     OutlinedTextField(
                                         value = prefixInput,
                                         onValueChange = { prefixInput = it },
-                                        label = { Text("بادئة الكود (اختياري)") },
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = BrandPrimaryRed,
-                                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                                            focusedLabelColor = BrandPrimaryRed,
-                                            unfocusedLabelColor = TextSecondary,
-                                            focusedTextColor = Color.White,
-                                            unfocusedTextColor = Color.White
-                                        ),
-                                        modifier = Modifier.fillMaxWidth(),
+                                        label = { Text("بادئة الكود (اختياري)") }, modifier = Modifier.fillMaxWidth(),
                                         textStyle = TextAlign.Right.let { androidx.compose.ui.text.TextStyle(textAlign = TextAlign.Right) }
                                     )
 
@@ -309,16 +271,7 @@ fun MikrotikGeneratorScreen(
                                         value = codeLengthInput,
                                         onValueChange = { codeLengthInput = it },
                                         label = { Text("طول كود الكرت المولد") },
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = BrandPrimaryRed,
-                                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                                            focusedLabelColor = BrandPrimaryRed,
-                                            unfocusedLabelColor = TextSecondary,
-                                            focusedTextColor = Color.White,
-                                            unfocusedTextColor = Color.White
-                                        ),
-                                        modifier = Modifier.fillMaxWidth(),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth(),
                                         textStyle = TextAlign.Right.let { androidx.compose.ui.text.TextStyle(textAlign = TextAlign.Right) }
                                     )
                                 }
@@ -361,20 +314,16 @@ fun MikrotikGeneratorScreen(
                                         Toast.makeText(context, "⚡ تم توليد $qty كرت بنجاح وإضافتهم للجدول المستقل!", Toast.LENGTH_LONG).show()
                                         selectedTab = 1 // Switch to History
                                     }
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = BrandPrimaryRed),
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier
+                                }, modifier = Modifier
                                     .fillMaxWidth()
                                     .height(50.dp)
                             ) {
-                                Icon(Icons.Default.Bolt, contentDescription = null, tint = Color.White)
+                                Icon(Icons.Default.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "توليد كروت وحفظ بالمايكروتك ⚡",
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
@@ -392,11 +341,11 @@ fun MikrotikGeneratorScreen(
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(Icons.Default.CardMembership, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(64.dp))
+                            Icon(Icons.Default.CardMembership, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(64.dp))
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("لا توجد كروت مولدة بالانتظار حالياً", color = TextSecondary, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text("لا توجد كروت مولدة بالانتظار حالياً", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("قم بتوليد الكروت من علامة التبويب الأولى للبدء في طباعتها أو تصديرها لمخزن مبيعاتك.", color = TextSecondary.copy(alpha = 0.6f), fontSize = 12.sp, textAlign = TextAlign.Center)
+                            Text("قم بتوليد الكروت من علامة التبويب الأولى للبدء في طباعتها أو تصديرها لمخزن مبيعاتك.", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), textAlign = TextAlign.Center)
                         }
                     } else {
                         LazyColumn(
@@ -434,15 +383,11 @@ fun MikrotikGeneratorScreen(
                                             val clip = android.content.ClipData.newPlainText("Mikrotik Cards", reportText)
                                             clipboard.setPrimaryClip(clip)
                                             Toast.makeText(context, "تم توليد ملف الكروت ونسخه للحافظة بنجاح! جاهز للطباعة 📋", Toast.LENGTH_LONG).show()
-                                        },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B)),
-                                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
-                                        shape = RoundedCornerShape(10.dp),
-                                        modifier = Modifier.weight(1f)
+                                        }, modifier = Modifier.weight(1f)
                                     ) {
-                                        Icon(Icons.Default.Print, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                        Icon(Icons.Default.Print, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
                                         Spacer(modifier = Modifier.width(6.dp))
-                                        Text("طباعة كرتوني 📋", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        Text("طباعة كرتوني 📋", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                                     }
 
                                     Button(
@@ -461,14 +406,11 @@ fun MikrotikGeneratorScreen(
                                                 }
                                                 Toast.makeText(context, "تم نقل $transferCount كرت بنجاح إلى مخزن البيع التلقائي! 🎉", Toast.LENGTH_LONG).show()
                                             }
-                                        },
-                                        colors = ButtonDefaults.buttonColors(containerColor = GlowEmeraldGreen),
-                                        shape = RoundedCornerShape(10.dp),
-                                        modifier = Modifier.weight(1f)
+                                        }, modifier = Modifier.weight(1f)
                                     ) {
-                                        Icon(Icons.Default.ArrowForward, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                        Icon(Icons.Default.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
                                         Spacer(modifier = Modifier.width(6.dp))
-                                        Text("نقل للمبيعات 📥", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        Text("نقل للمبيعات 📥", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
@@ -476,11 +418,8 @@ fun MikrotikGeneratorScreen(
                             // Clean list item cards
                             items(activeCards) { card ->
                                 Card(
-                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
-                                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
-                                    shape = RoundedCornerShape(14.dp),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
+modifier = Modifier.fillMaxWidth()
+) {
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -506,12 +445,11 @@ fun MikrotikGeneratorScreen(
                                                         )
                                                         Toast.makeText(context, "تم نقل الكرت إلى مخزن البيع التلقائي!", Toast.LENGTH_SHORT).show()
                                                     }
-                                                },
-                                                modifier = Modifier
+                                                }, modifier = Modifier
                                                     .size(36.dp)
-                                                    .background(GlowEmeraldGreen.copy(alpha = 0.1f), CircleShape)
+                                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape)
                                             ) {
-                                                Icon(Icons.Default.ArrowForward, contentDescription = "نقل لمخزن المبيعات", tint = GlowEmeraldGreen, modifier = Modifier.size(16.dp))
+                                                Icon(Icons.Default.ArrowForward, contentDescription = "نقل لمخزن المبيعات", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                                             }
 
                                             // Delete single
@@ -519,8 +457,7 @@ fun MikrotikGeneratorScreen(
                                                 onClick = {
                                                     viewModel.deleteGeneratedCard(card.id)
                                                     Toast.makeText(context, "تم حذف الكرت المولد.", Toast.LENGTH_SHORT).show()
-                                                },
-                                                modifier = Modifier
+                                                }, modifier = Modifier
                                                     .size(36.dp)
                                                     .background(Color.Red.copy(alpha = 0.1f), CircleShape)
                                             ) {
@@ -536,23 +473,21 @@ fun MikrotikGeneratorScreen(
                                             ) {
                                                 Box(
                                                     modifier = Modifier
-                                                        .background(BrandPrimaryRed.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
+                                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
                                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                                 ) {
-                                                    Text("فئة ${card.category}", color = BrandPrimaryRed, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                                    Text("فئة ${card.category}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                                                 }
                                                 Text(
                                                     text = card.pin,
-                                                    color = Color.White,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 14.sp
+                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                    fontWeight = FontWeight.Bold
                                                 )
                                             }
                                             if (card.password.isNotEmpty()) {
                                                 Text(
                                                     text = "كلمة المرور: ${card.password}",
-                                                    color = TextSecondary,
-                                                    fontSize = 11.sp
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                                 )
                                             }
                                         }
@@ -575,26 +510,20 @@ fun MikrotikGeneratorScreen(
                         item {
                             Text(
                                 text = "بيانات ربط المايكروتك (MikroTik Connection)",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = BrandPrimaryRed
+                                color = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "تأكد من تفعيل منفذ API (الافتراضي 8728) في المايكروتك لكي يتصل التطبيق بنجاح ويقوم بتخزين وتوليد الكروت بشكل تلقائي في شبكتك.",
-                                color = TextSecondary,
-                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 lineHeight = 18.sp
                             )
                         }
 
                         item {
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f)),
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
+modifier = Modifier.fillMaxWidth()
+) {
                                 Column(
                                     modifier = Modifier.padding(16.dp),
                                     verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -602,44 +531,20 @@ fun MikrotikGeneratorScreen(
                                     OutlinedTextField(
                                         value = mtHost,
                                         onValueChange = { mtHost = it },
-                                        label = { Text("عنوان خادم المايكروتك / IP Host") },
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = BrandPrimaryRed,
-                                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                                            focusedLabelColor = BrandPrimaryRed,
-                                            focusedTextColor = Color.White,
-                                            unfocusedTextColor = Color.White
-                                        ),
-                                        modifier = Modifier.fillMaxWidth()
+                                        label = { Text("عنوان خادم المايكروتك / IP Host") }, modifier = Modifier.fillMaxWidth()
                                     )
 
                                     OutlinedTextField(
                                         value = mtPort,
                                         onValueChange = { mtPort = it },
                                         label = { Text("منفذ API Port") },
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = BrandPrimaryRed,
-                                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                                            focusedLabelColor = BrandPrimaryRed,
-                                            focusedTextColor = Color.White,
-                                            unfocusedTextColor = Color.White
-                                        ),
-                                        modifier = Modifier.fillMaxWidth()
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth()
                                     )
 
                                     OutlinedTextField(
                                         value = mtUser,
                                         onValueChange = { mtUser = it },
-                                        label = { Text("اسم مستخدم المايكروتك") },
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = BrandPrimaryRed,
-                                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                                            focusedLabelColor = BrandPrimaryRed,
-                                            focusedTextColor = Color.White,
-                                            unfocusedTextColor = Color.White
-                                        ),
-                                        modifier = Modifier.fillMaxWidth()
+                                        label = { Text("اسم مستخدم المايكروتك") }, modifier = Modifier.fillMaxWidth()
                                     )
 
                                     OutlinedTextField(
@@ -652,32 +557,16 @@ fun MikrotikGeneratorScreen(
                                                 Icon(
                                                     imageVector = if (isPassVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                                     contentDescription = null,
-                                                    tint = TextSecondary
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                                 )
                                             }
-                                        },
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = BrandPrimaryRed,
-                                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                                            focusedLabelColor = BrandPrimaryRed,
-                                            focusedTextColor = Color.White,
-                                            unfocusedTextColor = Color.White
-                                        ),
-                                        modifier = Modifier.fillMaxWidth()
+                                        }, modifier = Modifier.fillMaxWidth()
                                     )
 
                                     OutlinedTextField(
                                         value = mtProfile,
                                         onValueChange = { mtProfile = it },
-                                        label = { Text("اسم بروفايل الكروت (User Profile)") },
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = BrandPrimaryRed,
-                                            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                                            focusedLabelColor = BrandPrimaryRed,
-                                            focusedTextColor = Color.White,
-                                            unfocusedTextColor = Color.White
-                                        ),
-                                        modifier = Modifier.fillMaxWidth()
+                                        label = { Text("اسم بروفايل الكروت (User Profile)") }, modifier = Modifier.fillMaxWidth()
                                     )
                                 }
                             }
@@ -704,16 +593,13 @@ fun MikrotikGeneratorScreen(
                                             Toast.makeText(context, "❌ فشل اختبار الاتصال:\n$errorMsg", Toast.LENGTH_LONG).show()
                                         }
                                     }
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = GlowEmeraldGreen),
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier
+                                }, modifier = Modifier
                                     .fillMaxWidth()
                                     .height(48.dp)
                             ) {
-                                Icon(Icons.Default.Check, contentDescription = null, tint = Color.White)
+                                Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("حفظ واختبار الاتصال بالخادم 🟢", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text("حفظ واختبار الاتصال بالخادم 🟢", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                             }
                         }
                     }

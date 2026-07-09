@@ -147,6 +147,16 @@ if (databaseUrl) {
             license_key VARCHAR(100) NOT NULL,
             device_id VARCHAR(100)
         );
+        CREATE TABLE IF NOT EXISTS tenant_cards (
+            uuid VARCHAR(100) PRIMARY KEY,
+            card_code VARCHAR(100) NOT NULL,
+            category INT NOT NULL,
+            status VARCHAR(20) DEFAULT 'AVAILABLE', -- AVAILABLE, RESERVED, SOLD
+            sold_at BIGINT,
+            transaction_uuid VARCHAR(100),
+            license_key VARCHAR(100) NOT NULL,
+            device_id VARCHAR(100)
+        );
     `;
     pool.query(initDbQuery)
         .then(() => console.log("PostgreSQL Tables Initialized Successfully"))
@@ -325,7 +335,9 @@ app.post('/api/v1/serial/validate', verifyRequestSignature, (req, res) => {
         success: true,
         status: "ACTIVE",
         message: "✔ الترخيص ساري ومفعّل لجهازك بنجاح!",
-        token: jwt.sign({ serial: serial, deviceId: deviceId }, JWT_SECRET, { expiresIn: '365d' })
+        token: jwt.sign({ serial: serial, deviceId: deviceId }, JWT_SECRET, { expiresIn: '365d' }),
+        serverTime: Date.now(),
+        gracePeriodHours: 72 // 3 days grace period for offline operation
     });
 });
 
@@ -583,9 +595,7 @@ app.post('/api/v1/sync/upload', async (req, res) => {
                     await client.query(`
                         INSERT INTO tenant_transactions (uuid, phone, amount, card_code, wallet_type, created_at, updated_at, version, license_key, device_id)
                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-                        ON CONFLICT (uuid) DO UPDATE SET
-                            phone = EXCLUDED.phone, amount = EXCLUDED.amount, card_code = EXCLUDED.card_code,
-                            wallet_type = EXCLUDED.wallet_type, updated_at = EXCLUDED.updated_at, version = EXCLUDED.version
+                        ON CONFLICT (uuid) DO NOTHING
                     `, [item.uuid, item.phone, item.amount, item.cardCode || item.card_code, item.walletType || item.wallet_type, parseInt(item.createdAt || item.created_at), parseInt(item.updatedAt || item.updated_at), item.version || 1, licenseKey, deviceId]);
                 }
             }
@@ -595,9 +605,7 @@ app.post('/api/v1/sync/upload', async (req, res) => {
                     await client.query(`
                         INSERT INTO tenant_deposits (uuid, phone, amount, wallet_type, is_shared, card_details, created_at, updated_at, version, license_key, device_id)
                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-                        ON CONFLICT (uuid) DO UPDATE SET
-                            phone = EXCLUDED.phone, amount = EXCLUDED.amount, wallet_type = EXCLUDED.wallet_type,
-                            is_shared = EXCLUDED.is_shared, card_details = EXCLUDED.card_details, updated_at = EXCLUDED.updated_at, version = EXCLUDED.version
+                        ON CONFLICT (uuid) DO NOTHING
                     `, [item.uuid, item.phone, item.amount, item.walletType || item.wallet_type, item.isShared || item.is_shared, item.cardDetails || item.card_details, parseInt(item.createdAt || item.created_at), parseInt(item.updatedAt || item.updated_at), item.version || 1, licenseKey, deviceId]);
                 }
             }
@@ -619,9 +627,7 @@ app.post('/api/v1/sync/upload', async (req, res) => {
                     await client.query(`
                         INSERT INTO tenant_distributor_transactions (uuid, customer_id, date, type, amount, notes, updated_at, version, license_key, device_id)
                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-                        ON CONFLICT (uuid) DO UPDATE SET
-                            customer_id = EXCLUDED.customer_id, date = EXCLUDED.date, type = EXCLUDED.type,
-                            amount = EXCLUDED.amount, notes = EXCLUDED.notes, updated_at = EXCLUDED.updated_at, version = EXCLUDED.version
+                        ON CONFLICT (uuid) DO NOTHING
                     `, [item.id || item.uuid, item.customerId || item.customer_id, parseInt(item.date), item.type, item.amount, item.notes, parseInt(item.updatedAt || item.updated_at), item.version || 1, licenseKey, deviceId]);
                 }
             }
@@ -631,9 +637,7 @@ app.post('/api/v1/sync/upload', async (req, res) => {
                     await client.query(`
                         INSERT INTO tenant_distributor_expenses (uuid, category, amount, description, date, updated_at, version, license_key, device_id)
                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                        ON CONFLICT (uuid) DO UPDATE SET
-                            category = EXCLUDED.category, amount = EXCLUDED.amount, description = EXCLUDED.description,
-                            date = EXCLUDED.date, updated_at = EXCLUDED.updated_at, version = EXCLUDED.version
+                        ON CONFLICT (uuid) DO NOTHING
                     `, [item.id || item.uuid, item.category, item.amount, item.description, parseInt(item.date), parseInt(item.updatedAt || item.updated_at), item.version || 1, licenseKey, deviceId]);
                 }
             }
@@ -643,10 +647,36 @@ app.post('/api/v1/sync/upload', async (req, res) => {
                     await client.query(`
                         INSERT INTO tenant_distributor_capitals (uuid, type, amount, description, date, updated_at, version, license_key, device_id)
                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                        ON CONFLICT (uuid) DO UPDATE SET
-                            type = EXCLUDED.type, amount = EXCLUDED.amount, description = EXCLUDED.description,
-                            date = EXCLUDED.date, updated_at = EXCLUDED.updated_at, version = EXCLUDED.version
+                        ON CONFLICT (uuid) DO NOTHING
                     `, [item.id || item.uuid, item.type, item.amount, item.description, parseInt(item.date), parseInt(item.updatedAt || item.updated_at), item.version || 1, licenseKey, deviceId]);
+                }
+            }
+
+            // Sync Cards with Row Locks to prevent double selling
+            if (req.body.cards && req.body.cards.length > 0) {
+                for (const card of req.body.cards) {
+                    // Try to insert first if it doesn't exist
+                    await client.query(`
+                        INSERT INTO tenant_cards (uuid, card_code, category, status, sold_at, transaction_uuid, license_key, device_id)
+                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                        ON CONFLICT (uuid) DO NOTHING
+                    `, [card.uuid, card.cardCode || card.card_code, card.category, card.status, parseInt(card.soldAt || card.sold_at || 0), card.transactionUuid || card.transaction_uuid, licenseKey, deviceId]);
+                    
+                    // Secure Row Lock Update
+                    const lockRes = await client.query(`SELECT status FROM tenant_cards WHERE uuid = $1 FOR UPDATE`, [card.uuid]);
+                    if (lockRes.rows.length > 0) {
+                        const currentStatus = lockRes.rows[0].status;
+                        if (currentStatus === 'AVAILABLE' && card.status !== 'AVAILABLE') {
+                            await client.query(`
+                                UPDATE tenant_cards 
+                                SET status = $1, sold_at = $2, transaction_uuid = $3, device_id = $4
+                                WHERE uuid = $5
+                            `, [card.status, parseInt(card.soldAt || card.sold_at || 0), card.transactionUuid || card.transaction_uuid, deviceId, card.uuid]);
+                        } else if (currentStatus !== 'AVAILABLE' && card.status !== 'AVAILABLE' && currentStatus !== card.status) {
+                            // Conflict detected, keeping current state (First come, first serve wins)
+                            console.log(`Conflict prevented: Card ${card.uuid} is already ${currentStatus}`);
+                        }
+                    }
                 }
             }
 
