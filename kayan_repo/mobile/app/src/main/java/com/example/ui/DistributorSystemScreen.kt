@@ -230,15 +230,13 @@ modifier = Modifier.fillMaxWidth()
                     ) {
                         Button(
                             onClick = { type = "payment" },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                            modifier = Modifier.weight(1f)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer), modifier = Modifier.weight(1f)
                         ) {
                             Text("سند تحصيل (دفعة)")
                         }
                         Button(
                             onClick = { type = "sale" },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                            modifier = Modifier.weight(1f)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), modifier = Modifier.weight(1f)
                         ) {
                             Text("قيد دين مباشر")
                         }
@@ -307,7 +305,7 @@ modifier = Modifier.fillMaxWidth()
                                 modifier = Modifier
                                     .weight(1f)
                                     .background(
-                                        if (category == catKey) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                        if (category == catKey) MaterialTheme.colorScheme.primary else Color.Transparent,
                                         RoundedCornerShape(8.dp)
                                     )
                                     .clickable { category = catKey }
@@ -316,7 +314,7 @@ modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
                                     text = catName.substringBefore(" "),
-                                    color = if (category == catKey) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -376,15 +374,13 @@ modifier = Modifier.fillMaxWidth()
                     ) {
                         Button(
                             onClick = { type = "deposit" },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                            modifier = Modifier.weight(1f)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer), modifier = Modifier.weight(1f)
                         ) {
                             Text("إيداع رأس مال")
                         }
                         Button(
                             onClick = { type = "withdraw" },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                            modifier = Modifier.weight(1f)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary), modifier = Modifier.weight(1f)
                         ) {
                             Text("سحب رأس مال")
                         }
@@ -590,7 +586,7 @@ fun CustomersTab(
                                     Text("الرصيد", color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Text(
                                         "${customer.currentBalance} ر.ي",
-                                        color = if (customer.currentBalance > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                                        color = if (customer.currentBalance > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                     )
                                 }
                                 
@@ -768,7 +764,7 @@ modifier = Modifier.fillMaxWidth()
                 
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                     Text("المبلغ المتبقي (آجل/دين):")
-                    Text("$remainingDebt ر.ي", color = if (remainingDebt > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary)
+                    Text("$remainingDebt ر.ي", color = if (remainingDebt > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
                 }
             }
         }

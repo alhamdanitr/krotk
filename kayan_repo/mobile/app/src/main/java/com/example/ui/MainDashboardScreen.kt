@@ -898,12 +898,7 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                                     placeholder = { Text("أدخل الكود المميز للكرت هنا") },
                                     singleLine = true, modifier = Modifier.fillMaxWidth().testTag("input_single_code_only"),
                                     textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                                        focusedContainerColor = MaterialTheme.colorScheme.background,
-                                        unfocusedContainerColor = MaterialTheme.colorScheme.background
-                                    )
+                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.outline, focusedContainerColor = MaterialTheme.colorScheme.background, unfocusedContainerColor = MaterialTheme.colorScheme.background)
                                 )
                             } else {
                                 OutlinedTextField(
@@ -913,12 +908,7 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                                     placeholder = { Text("أدخل اسم المستخدم للكرت") },
                                     singleLine = true, modifier = Modifier.fillMaxWidth().testTag("input_single_user"),
                                     textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                                        focusedContainerColor = MaterialTheme.colorScheme.background,
-                                        unfocusedContainerColor = MaterialTheme.colorScheme.background
-                                    )
+                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.outline, focusedContainerColor = MaterialTheme.colorScheme.background, unfocusedContainerColor = MaterialTheme.colorScheme.background)
                                 )
 
                                 OutlinedTextField(
@@ -928,12 +918,7 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                                     placeholder = { Text("أدخل الرقم السري للكرت") },
                                     singleLine = true, modifier = Modifier.fillMaxWidth().testTag("input_single_pass"),
                                     textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                                        focusedContainerColor = MaterialTheme.colorScheme.background,
-                                        unfocusedContainerColor = MaterialTheme.colorScheme.background
-                                    )
+                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.outline, focusedContainerColor = MaterialTheme.colorScheme.background, unfocusedContainerColor = MaterialTheme.colorScheme.background)
                                 )
                             }
                         }
@@ -1064,7 +1049,7 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                             .border(
                                 BorderStroke(
                                     width = 1.5.dp, 
-                                    color = if (selectedViewCategory == cat) catColor else Color(0x1F9E9E9E)
+                                    color = if (selectedViewCategory == cat) catColor else MaterialTheme.colorScheme.outline
                                 ),
                                 RoundedCornerShape(22.dp)
                             )
@@ -1073,7 +1058,7 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                     ) {
                         Text(
                             text = "$cat ر.ي",
-                            color = if (selectedViewCategory == cat) catColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = if (selectedViewCategory == cat) catColor else MaterialTheme.colorScheme.outline,
                             fontWeight = FontWeight.ExtraBold
                         )
                     }
@@ -1238,6 +1223,7 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                             focusedContainerColor = MaterialTheme.colorScheme.background,
                             unfocusedContainerColor = MaterialTheme.colorScheme.background
                         ),
+                        
                         leadingIcon = {
                             Icon(imageVector = Icons.Default.Search, contentDescription = "بحث", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -1266,14 +1252,12 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                                         .weight(1f)
                                         .height(30.dp)
                                         .clip(RoundedCornerShape(15.dp))
-                                        .background(
-                                            if (isSelected) (Color(0xFFFF9800).copy(alpha = 0.15f).copy(alpha = 0.12f)).copy(alpha = 0.4f) else MaterialTheme.colorScheme.surface
-                                        )
+                                        .background(if (isSelected) (Color(0xFFFF9800).copy(alpha = 0.15f).copy(alpha = 0.12f)).copy(alpha = 0.4f) else Color.Transparent)
                                         .clickable { tableCategoryFilter = cat }
                                         .border(
                                             BorderStroke(
                                                 width = 1.dp,
-                                                color = if (isSelected) (MaterialTheme.colorScheme.secondary) else Color(0x1F9E9E9E)
+                                                color = if (isSelected) (MaterialTheme.colorScheme.secondary) else Color.Transparent
                                             ),
                                             RoundedCornerShape(15.dp)
                                         ),
@@ -1281,7 +1265,7 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                                 ) {
                                     Text(
                                         text = cat,
-                                        color = if (isSelected) (MaterialTheme.colorScheme.secondary) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        color = if (isSelected) (MaterialTheme.colorScheme.secondary) else Color.Transparent,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -1310,13 +1294,13 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                                             if (isSelected) {
                                                 val baseColor = when (status) {
                                                     "متاحة" -> Color(0xFF4CAF50).copy(alpha = 0.15f)
-                                                    "الكل" -> (Color(0xFFFF9800).copy(alpha = 0.15f).copy(alpha = 0.12f))
+                                                    "الكل" -> Color(0xFFFF9800).copy(alpha = 0.15f).copy(alpha = 0.12f)
                                                     "تم توزيعها" -> Color(0xFF1E88E5).copy(alpha = 0.15f)
                                                     else -> MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
                                                 }
                                                 baseColor.copy(alpha = 0.4f)
                                             } else {
-                                                MaterialTheme.colorScheme.surface
+                                                Color.Transparent
                                             }
                                         )
                                         .clickable { tableStatusFilter = status }
@@ -1330,9 +1314,7 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                                                         "تم توزيعها" -> Color(0xFF1E88E5)
                                                         else -> MaterialTheme.colorScheme.error
                                                     }
-                                                } else {
-                                                    Color(0x1F9E9E9E)
-                                                }
+                                                } else Color.Transparent
                                             ),
                                             RoundedCornerShape(15.dp)
                                         ),
@@ -1347,9 +1329,7 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                                                 "تم توزيعها" -> Color(0xFF1E88E5)
                                                 else -> MaterialTheme.colorScheme.error
                                             }
-                                        } else {
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                        },
+                                        } else MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -1552,9 +1532,9 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                                     .weight(1f)
                                     .height(32.dp)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isSelected) Color(0xFFFF9800).copy(alpha = 0.2f) else MaterialTheme.colorScheme.surface)
+                                    .background(if (isSelected) Color(0xFFFF9800).copy(alpha = 0.2f) else Color.Transparent)
                                     .border(
-                                        BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.secondary else Color(0x1F9E9E9E)),
+                                        BorderStroke(if (isSelected) 1.dp else 0.dp, if (isSelected) MaterialTheme.colorScheme.secondary else Color.Transparent),
                                         RoundedCornerShape(8.dp)
                                     )
                                     .clickable { selectedShareWallet = wallet },
@@ -2507,7 +2487,7 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isSuccessfulDistribution) Color(0xFF4CAF50).copy(alpha = 0.1f) else Color.Red.copy(alpha = 0.1f))
+                                    .background(if (isSuccessfulDistribution) Color(0xFF4CAF50).copy(alpha = 0.1f) else Color(0xFFF44336).copy(alpha = 0.1f))
                                     .padding(horizontal = 8.dp, vertical = 3.dp)
                             ) {
                                 Text(
@@ -2786,13 +2766,8 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                         onValueChange = { editNetworkNameText = it; feedbackMsg = "" },
                         label = { Text("اسم الشبكة (بدون التفعيل)") }, modifier = Modifier.fillMaxWidth().testTag("settings_network_name_fld"),
                         textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedContainerColor = MaterialTheme.colorScheme.background,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.background
-                        )
-                    )
+                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.outline, focusedContainerColor = MaterialTheme.colorScheme.background, unfocusedContainerColor = MaterialTheme.colorScheme.background)
+                                )
 
                     // Message Template
                     OutlinedTextField(
@@ -2800,13 +2775,8 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                         onValueChange = { editSmsTemplateText = it; feedbackMsg = "" },
                         label = { Text("صيغة الرسالة المرسلة تلقائياً لشبكتك") }, modifier = Modifier.fillMaxWidth().height(115.dp).testTag("settings_sms_tpl_fld"),
                         textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedContainerColor = MaterialTheme.colorScheme.background,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.background
-                        )
-                    )
+                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.outline, focusedContainerColor = MaterialTheme.colorScheme.background, unfocusedContainerColor = MaterialTheme.colorScheme.background)
+                                )
 
                     // Change Serial directly
                     OutlinedTextField(
@@ -2816,13 +2786,8 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                         placeholder = { Text("أدخل رمز تفعيل أو باسورد جديد مباشرة هنا") },
                         singleLine = true, modifier = Modifier.fillMaxWidth().testTag("settings_password_fld"),
                         textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedContainerColor = MaterialTheme.colorScheme.background,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.background
-                        )
-                    )
+                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.outline, focusedContainerColor = MaterialTheme.colorScheme.background, unfocusedContainerColor = MaterialTheme.colorScheme.background)
+                                )
 
                     if (feedbackMsg.isNotEmpty()) {
                         Text(
@@ -3017,13 +2982,8 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                         placeholder = { Text("مثال: احمد جابر حسن") },
                         singleLine = true, modifier = Modifier.fillMaxWidth().testTag("special_cust_name"),
                         textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedContainerColor = MaterialTheme.colorScheme.background,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.background
-                        )
-                    )
+                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.outline, focusedContainerColor = MaterialTheme.colorScheme.background, unfocusedContainerColor = MaterialTheme.colorScheme.background)
+                                )
 
                     // Wallet Type selection via customizable Chips (Material 3 style)
                     Text(
@@ -3093,13 +3053,8 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                         placeholder = { Text("مثال: 120025 أو الاسم كما in الكريمي") },
                         singleLine = true, modifier = Modifier.fillMaxWidth().testTag("special_cust_wallet_id"),
                         textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedContainerColor = MaterialTheme.colorScheme.background,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.background
-                        )
-                    )
+                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.outline, focusedContainerColor = MaterialTheme.colorScheme.background, unfocusedContainerColor = MaterialTheme.colorScheme.background)
+                                )
 
                     // Target / Basic Personal Phone Number
                     OutlinedTextField(
@@ -3109,13 +3064,8 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                         placeholder = { Text("مثال: 770118275") },
                         singleLine = true, modifier = Modifier.fillMaxWidth().testTag("special_cust_phone_id"),
                         textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Right, color = MaterialTheme.colorScheme.onSurface),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            focusedContainerColor = MaterialTheme.colorScheme.background,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.background
-                        )
-                    )
+                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.outline, focusedContainerColor = MaterialTheme.colorScheme.background, unfocusedContainerColor = MaterialTheme.colorScheme.background)
+                                )
 
                     // Add Customer Button styled with Brush.horizontalGradient(listOf(Color(0xFF9C27B0), Color(0xFFFF4081)))
                     Button(

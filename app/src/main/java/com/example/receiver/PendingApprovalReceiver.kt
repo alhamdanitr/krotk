@@ -110,9 +110,15 @@ class PendingApprovalReceiver : BroadcastReceiver() {
                         repository.updateDepositSharing(pending.depositId, isShared = false, cardDetails = "نفذ المخزن")
                     }
                 } else if (action == "com.example.action.REJECT_PENDING") {
-                    // Reject / ignore: just log a cancelled transaction
-                    repository.insertTransaction(pending.phone, pending.amount, "تم رفض وإلغاء إرسال الكرت يدوياً", pending.walletType)
-                    repository.updateDepositSharing(pending.depositId, isShared = false, cardDetails = "تم الرفض يدوياً")
+                    val isAutoApproved = repository.autoApprovedAmounts.value.contains(pending.amount)
+                    if (isAutoApproved) {
+                        // Reject / ignore standard: just log a cancelled transaction
+                        repository.insertTransaction(pending.phone, pending.amount, "تم رفض وإلغاء إرسال الكرت يدوياً", pending.walletType)
+                        repository.updateDepositSharing(pending.depositId, isShared = false, cardDetails = "تم الرفض يدوياً")
+                    } else {
+                        // Unapproved amount ignored completely - delete deposit so no financial log exists!
+                        repository.deleteDeposit(pending.depositId)
+                    }
                 }
 
                 // Always delete the pending approval from DB once processed

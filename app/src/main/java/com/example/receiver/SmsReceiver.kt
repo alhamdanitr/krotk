@@ -39,8 +39,9 @@ class SmsReceiver : BroadcastReceiver() {
                         @Suppress("DEPRECATION")
                         SmsMessage.createFromPdu(pdu as ByteArray)
                     }
+                    val sender = sms.originatingAddress ?: ""
                     val message = sms.messageBody ?: continue
-                    handleMessage(context, message)
+                    handleMessage(context, sender, message)
                 }
             } catch (e: Exception) {
                 Log.e("SmsReceiver", "Error receiving SMS", e)
@@ -50,12 +51,18 @@ class SmsReceiver : BroadcastReceiver() {
         }
     }
 
-    private suspend fun handleMessage(context: Context, message: String) {
+    private suspend fun handleMessage(context: Context, sender: String, message: String) {
         val repository = CardRepository(context)
         
         // Only proceed if the service is turned on in settings
         if (!repository.isServiceEnabled.value) {
             Log.d("SmsReceiver", "Service is disabled. SMS ignored.")
+            return
+        }
+
+        // Check duplicates
+        if (repository.isSmsProcessed(message)) {
+            Log.d("SmsReceiver", "Sms message already processed. Duplicate ignored.")
             return
         }
 
@@ -69,7 +76,30 @@ class SmsReceiver : BroadcastReceiver() {
         }
 
         if (parsed != null) {
+            // Check sender authenticity
+            if (!verifySenderForWallet(sender, parsed.walletType)) {
+                Log.d("SmsReceiver", "Sender '$sender' is not verified for wallet '${parsed.walletType}'. Ignored.")
+                return
+            }
+
+            // Mark SMS as processed
+            repository.markSmsAsProcessed(message)
+
             sendCard(context, repository, parsed.amount, parsed.phone, parsed.walletType, parsed.isAccountCode)
+        }
+    }
+
+    private fun verifySenderForWallet(sender: String, walletType: String): Boolean {
+        val s = sender.trim().uppercase()
+        return when (walletType) {
+            "جيب" -> s.contains("JEEB") || s.contains("M-JEEB") || s.contains("77")
+            "جوالي" -> s.contains("JAWALI") || s.contains("M-JAWALI") || s.contains("77")
+            "كريمي" -> s.contains("KURAIMI") || s.contains("M-KURAIMI") || s.contains("77")
+            "حاسب" -> s.contains("HASEB") || s.contains("M-HASEB") || s.contains("77")
+            "ون كاش" -> s.contains("ONECASH") || s.contains("ONE_CASH") || s.contains("77")
+            "ام فلوس" -> s.contains("MFLOOS") || s.contains("M-FLOOS") || s.contains("77")
+            "إرسال تلقائي خاص" -> true
+            else -> true
         }
     }
 
@@ -135,7 +165,9 @@ class SmsReceiver : BroadcastReceiver() {
             identifier
         }
 
-        if (repository.isAutoSendSmsEnabled.value) {
+        val isAutoApproved = repository.autoApprovedAmounts.value.contains(amount)
+
+        if (repository.isAutoSendSmsEnabled.value && isAutoApproved) {
             // Automatic send (without requiring manual confirmation)
             val card = repository.getUnusedCardByCategory(amount)
             if (card != null) {
@@ -226,9 +258,8 @@ class SmsReceiver : BroadcastReceiver() {
                 notificationManager.notify(notificationId, builder.build())
             }
         } else {
-            // Manual confirmation mode (requires approval first)
-            // Insert Deposit first, then insert PendingApproval linked with its ID
-            val depositId = repository.insertDeposit(recipientPhone, amount, walletType, isShared = false, cardDetails = "معلق بانتظار الموافقة")
+            // Manual confirmation or unapproved amount mode (requires approval first)
+            val depositId = repository.insertDeposit(recipientPhone, amount, walletType, isShared = false, cardDetails = if (isAutoApproved) "معلق بانتظار الموافقة" else "مبلغ غير معتمد معلق")
             val pendingId = repository.insertPendingApproval(recipientPhone, amount, walletType, isAccountCode, depositId.toInt()).toInt()
 
             // Sync with cloud backend
@@ -279,20 +310,39 @@ class SmsReceiver : BroadcastReceiver() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
+            val notificationTitle = if (isAutoApproved) {
+                "هل تريد التأكيد على إرسال الكرت؟ ⚠️"
+            } else {
+                "⚠️ تم استلام تحويل بمبلغ غير معتمد تلقائياً!"
+            }
+
+            val notificationBody = if (isAutoApproved) {
+                "هل تريد التأكيد على إرسال الكرت؟\n\n" +
+                "تم تلقي إيداع بقيمة $amount ر.ي من الرقم $recipientPhone عبر $walletType.\n" +
+                "يرجى تحديد الإجراء أدناه لتأكيد الإرسال للعميل أو الرفض."
+            } else {
+                "تم استلام رسالة تحويل بمبلغ غير موجود ضمن فئات البيع المعتمدة.\n\n" +
+                "المبلغ: $amount ر.ي من الرقم $recipientPhone عبر $walletType.\n" +
+                "هل تريد اعتماد هذا التحويل داخل النظام؟"
+            }
+
+            val notificationColor = if (isAutoApproved) {
+                0xFFFFD700.toInt() // gold
+            } else {
+                0xFFD32F2F.toInt() // red warning
+            }
+
             val builder = NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(android.R.drawable.sym_action_chat)
-                .setContentTitle("إيداع معلق بقيمة $amount ر.ي عبر $walletType")
-                .setContentText("اضغط للموافقة على إرسال الكرت")
-                .setStyle(NotificationCompat.BigTextStyle().bigText(
-                    "تم تلقي إيداع بقيمة $amount ر.ي من الرقم $recipientPhone عبر $walletType.\n" +
-                    "يرجى تحديد الإجراء المناسب أدناه لتأكيد إرسال الكارت أو إلغاء المعاملة."
-                ))
+                .setContentTitle(notificationTitle)
+                .setContentText("إيداع بقيمة $amount ر.ي من $recipientPhone عبر $walletType")
+                .setStyle(NotificationCompat.BigTextStyle().bigText(notificationBody))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setAutoCancel(true)
-                .setColor(0xFFFFD700.toInt()) // gold
+                .setColor(notificationColor)
                 .setContentIntent(appPendingIntent)
-                .addAction(android.R.drawable.ic_media_play, "تأكيد وإرسال ✔", approvePendingIntent)
+                .addAction(android.R.drawable.ic_media_play, "تأكيد وإرسال الكرت ✔", approvePendingIntent)
                 .addAction(android.R.drawable.ic_menu_close_clear_cancel, "تجاهل ✖", rejectPendingIntent)
 
             notificationManager.notify(notificationId, builder.build())
