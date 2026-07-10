@@ -65,11 +65,34 @@ fun MainDashboardScreen(
     val allPendingApprovals by viewModel.allPendingApprovals.collectAsState()
 
     var activeEventNotification by remember { mutableStateOf<com.example.utils.NotificationBus.NewCardExtractedEvent?>(null) }
+    // "distributor" أو "mikrotik" أو null — شاشات فرعية كاملة تحل محل الـ Scaffold الرئيسي مؤقتًا
+    var currentSubScreen by remember { mutableStateOf<String?>(null) }
+    var distributorInitialTab by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
         com.example.utils.NotificationBus.newCardExtractedEvents.collect { event ->
             activeEventNotification = event
         }
+    }
+
+    androidx.activity.compose.BackHandler(enabled = currentSubScreen != null) {
+        currentSubScreen = null
+    }
+
+    if (currentSubScreen == "distributor") {
+        DistributorSystemScreen(
+            viewModel = viewModel,
+            initialTab = distributorInitialTab,
+            onBack = { currentSubScreen = null }
+        )
+        return
+    }
+    if (currentSubScreen == "mikrotik") {
+        MikrotikGeneratorScreen(
+            viewModel = viewModel,
+            onBack = { currentSubScreen = null }
+        )
+        return
     }
 
     Scaffold(
@@ -188,7 +211,21 @@ fun MainDashboardScreen(
                 .padding(innerPadding)
         ) {
             when (selectedTab) {
-                0 -> HomeTab(viewModel = viewModel)
+                0 -> HomeTab(
+                    viewModel = viewModel,
+                    onNavigateToSubScreen = { screen ->
+                        if (screen.startsWith("distributor")) {
+                            distributorInitialTab = when (screen) {
+                                "distributor_debts" -> 1
+                                "distributor_expenses" -> 2
+                                else -> 0
+                            }
+                            currentSubScreen = "distributor"
+                        } else {
+                            currentSubScreen = screen
+                        }
+                    }
+                )
                 1 -> CardsTab(viewModel = viewModel)
                 2 -> PendingApprovalsTab(viewModel = viewModel)
                 3 -> SpecialCustomersTab(viewModel = viewModel)
@@ -314,7 +351,10 @@ fun MainDashboardScreen(
 // TAB 1: الرئيسية (Home Tab)
 // ==========================================
 @Composable
-fun HomeTab(viewModel: MainViewModel) {
+fun HomeTab(
+    viewModel: MainViewModel,
+    onNavigateToSubScreen: (String) -> Unit
+) {
     val context = LocalContext.current
     val networkName by viewModel.networkName.collectAsState()
     val totalUnusedCount by viewModel.totalUnusedCount.collectAsState()
@@ -476,6 +516,63 @@ fun HomeTab(viewModel: MainViewModel) {
                         if (rowItems.size == 1) {
                             Spacer(modifier = Modifier.weight(1f))
                         }
+                    }
+                }
+            }
+        }
+
+        // Title for Additional Services
+        item {
+            Text(
+                text = "خدمات إضافية 🧰",
+                color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                textAlign = TextAlign.Right
+            )
+        }
+
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onNavigateToSubScreen("distributor") }
+                        .testTag("service_distributor_calculator")
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Outlined.Calculate, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Text(
+                            text = "حاسبة الموزع",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onNavigateToSubScreen("mikrotik") }
+                        .testTag("service_mikrotik_generator")
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Outlined.Wifi, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Text(
+                            text = "توليد كروت ميكروتك",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             }
