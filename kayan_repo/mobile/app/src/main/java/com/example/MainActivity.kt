@@ -33,10 +33,6 @@ import com.example.database.CardRepository
 import com.example.network.SyncService
 import com.example.ui.*
 import com.example.ui.theme.MyApplicationTheme
-import com.example.ui.theme.MaterialTheme.colorScheme.primary
-import com.example.ui.theme.MaterialTheme.colorScheme.background
-import com.example.ui.theme.MaterialTheme.colorScheme.surface
-import com.example.ui.theme.MaterialTheme.colorScheme.onSurface
 
 enum class AppScreen {
     LOGIN,
@@ -50,17 +46,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MyApplicationTheme {
-                val context = LocalContext.current
-                val repository = remember { CardRepository(context) }
-                val factory = remember { MainViewModelFactory(repository) }
-                val viewModel: MainViewModel = viewModel(factory = factory)
+            val context = LocalContext.current
+            val repository = remember { CardRepository(context) }
+            val factory = remember { MainViewModelFactory(repository) }
+            val viewModel: MainViewModel = viewModel(factory = factory)
+            val isDarkTheme by viewModel.isDarkTheme.collectAsState()
 
-                val isDarkTheme by viewModel.isDarkTheme.collectAsState()
-                LaunchedEffect(isDarkTheme) {
-                    com.example.ui.theme.androidx.compose.foundation.isSystemInDarkTheme() = isDarkTheme
-                }
-
+            MyApplicationTheme(darkTheme = isDarkTheme) {
                 val isActivated by viewModel.isActivated.collectAsState()
                 var currentScreen by remember { mutableStateOf(AppScreen.LOGIN) }
 

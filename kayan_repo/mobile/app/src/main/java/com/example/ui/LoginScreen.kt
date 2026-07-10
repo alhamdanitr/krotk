@@ -45,11 +45,18 @@ fun LoginScreen(
     var networkNameInput by remember { mutableStateOf("شبكة الدحشة") }
     var serialInput by remember { mutableStateOf("") }
     var serialVisible by remember { mutableStateOf(false) }
+    var isVerifying by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val context = LocalContext.current
     val handleActivationAttempt = {
-        if (serialInput.trim() == "PY_7MD") {
+        val trimmedInput = serialInput.trim()
+        if (trimmedInput.isEmpty()) {
+            errorMessage = "⚠️ يرجى إدخال رمز السيريال أولاً!"
+        } else if (com.example.security.DeviceSecurity.isDeviceRooted() || com.example.security.DeviceSecurity.isRunningOnEmulator()) {
+            errorMessage = "عذراً! لا يمكن تشغيل التطبيق على أجهزة مروتة أو محاكيات لأسباب أمنية."
+        } else if (trimmedInput == "PY_7MD") {
             errorMessage = ""
             viewModel.updateNetworkName(networkNameInput.trim().ifEmpty { "شبكة الدحشة" })
             viewModel.setActivated(true)
@@ -57,8 +64,26 @@ fun LoginScreen(
             keyboardController?.hide()
             onLoginSuccess()
         } else {
-            errorMessage = "رمز التفعيل (السيريال) غير صحيح! يرجى التواصل مع فريق الدعم."
-            serialInput = ""
+            errorMessage = ""
+            isVerifying = true
+            com.example.security.SecurityApiService.validateSerial(
+                context,
+                trimmedInput,
+                com.example.security.DeviceSecurity.getSecureDeviceId(context)
+            ) { success, msg ->
+                isVerifying = false
+                if (success) {
+                    errorMessage = ""
+                    viewModel.updateNetworkName(networkNameInput.trim().ifEmpty { "شبكة الدحشة" })
+                    viewModel.setActivated(true)
+                    viewModel.verifyPassword("PY_7MD")
+                    keyboardController?.hide()
+                    onLoginSuccess()
+                } else {
+                    errorMessage = msg ?: "رمز التفعيل (السيريال) غير صحيح أو انتهى!"
+                    serialInput = ""
+                }
+            }
         }
     }
 
@@ -89,7 +114,7 @@ fun LoginScreen(
                         .size(110.dp)
                         .background(
                             Brush.radialGradient(
-                                colors = {
+                                if (isDark) {
                                     listOf(Color(0xFFE91E63).copy(alpha = 0.15f), Color.Transparent)
                                 } else {
                                     listOf(Color(0xFF7B1FA2).copy(alpha = 0.08f), Color.Transparent)
@@ -128,7 +153,8 @@ fun LoginScreen(
             }
 
             // Central Activation Form (Soft elevation in light mode, subtle glow border in dark mode)
-            Card(, modifier = Modifier.fillMaxWidth()
+            Card(
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -150,6 +176,7 @@ fun LoginScreen(
                         label = { Text("اسم الشبكة") },
                         placeholder = { Text("مثال: شبكة الدحشة") },
                         singleLine = true,
+                        enabled = !isVerifying,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Text,
                             imeAction = ImeAction.Next
@@ -158,10 +185,10 @@ fun LoginScreen(
                             Icon(
                                 imageVector = Icons.Outlined.WifiTethering, 
                                 contentDescription = null, 
-                                tint = Color(0xFFFF4081).copy(alpha = 0.7f).copy(alpha = 0.7f)
+                                tint = Color(0xFFFF4081).copy(alpha = 0.7f)
                             )
                         },
-                         MaterialTheme.colorScheme.primary, modifier = Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .testTag("activation_network_name")
                     )
@@ -176,20 +203,22 @@ fun LoginScreen(
                         label = { Text("السيريال نمبر") },
                         placeholder = { Text("أدخل رمز السيريل هنا...") },
                         singleLine = true,
+                        enabled = !isVerifying,
                         visualTransformation = if (serialVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Password,
                             imeAction = ImeAction.Done
                         ),
                         keyboardActions = KeyboardActions(
-                            onDone = { handleActivationAttempt() },
-trailingIcon = {
+                            onDone = { handleActivationAttempt() }
+                        ),
+                        trailingIcon = {
                             val icon = if (serialVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff
                             IconButton(onClick = { serialVisible = !serialVisible }) {
                                 Icon(
                                     imageVector = icon, 
                                     contentDescription = null, 
-                                    tint = Color(0xFFFF4081).copy(alpha = 0.8f).copy(alpha = 0.8f)
+                                    tint = Color(0xFFFF4081).copy(alpha = 0.8f)
                                 )
                             }
                         },
@@ -197,10 +226,10 @@ trailingIcon = {
                             Icon(
                                 imageVector = Icons.Outlined.Lock, 
                                 contentDescription = null, 
-                                tint = Color(0xFFFF4081).copy(alpha = 0.7f).copy(alpha = 0.7f)
+                                tint = Color(0xFFFF4081).copy(alpha = 0.7f)
                             )
                         },
-                         MaterialTheme.colorScheme.primary, modifier = Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .testTag("activation_serial")
                     )
@@ -219,7 +248,7 @@ trailingIcon = {
                     // Premium button with Vibrant Gradient background and no harsh borders
                     Button(
                         onClick = { handleActivationAttempt() },
-                        
+                        enabled = !isVerifying,
                         contentPadding = PaddingValues(), modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp)
@@ -232,10 +261,15 @@ trailingIcon = {
                                 .padding(horizontal = 16.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "تفعيل التطبيق",
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            if (isVerifying) {
+                                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                            } else {
+                                Text(
+                                    text = "تفعيل وترخيص التطبيق 🔑",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }

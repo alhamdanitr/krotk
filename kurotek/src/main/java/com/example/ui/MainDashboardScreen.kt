@@ -86,7 +86,7 @@ fun MainDashboardScreen(
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                         selectedTextColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
-                        indicatorColor = if (isDarkTheme) Color(0xFFFF4081).copy(alpha = 0.15f).copy(alpha = 0.12f),
+                        indicatorColor = if (isDarkTheme) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -101,7 +101,7 @@ fun MainDashboardScreen(
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                         selectedTextColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
-                        indicatorColor = if (isDarkTheme) Color(0xFFFF4081).copy(alpha = 0.15f).copy(alpha = 0.12f),
+                        indicatorColor = if (isDarkTheme) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -129,7 +129,7 @@ fun MainDashboardScreen(
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                         selectedTextColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
-                        indicatorColor = if (isDarkTheme) Color(0xFFFF4081).copy(alpha = 0.15f).copy(alpha = 0.12f),
+                        indicatorColor = if (isDarkTheme) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -144,7 +144,7 @@ fun MainDashboardScreen(
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                         selectedTextColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
-                        indicatorColor = if (isDarkTheme) Color(0xFFFF4081).copy(alpha = 0.15f).copy(alpha = 0.12f),
+                        indicatorColor = if (isDarkTheme) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -159,7 +159,7 @@ fun MainDashboardScreen(
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                         selectedTextColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
-                        indicatorColor = if (isDarkTheme) Color(0xFFFF4081).copy(alpha = 0.15f).copy(alpha = 0.12f),
+                        indicatorColor = if (isDarkTheme) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -174,7 +174,7 @@ fun MainDashboardScreen(
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                         selectedTextColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
-                        indicatorColor = if (isDarkTheme) Color(0xFFFF4081).copy(alpha = 0.15f).copy(alpha = 0.12f),
+                        indicatorColor = if (isDarkTheme) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -358,9 +358,7 @@ fun HomeTab(viewModel: MainViewModel) {
         // App top header (Vibrant Gradient Background with Highly Rounded Corners)
         item {
             Card(
-                
-                
-                 0.dp else 6.dp), modifier = Modifier
+                elevation = CardDefaults.cardElevation(defaultElevation = if (isDarkTheme) 0.dp else 6.dp), modifier = Modifier
                     .fillMaxWidth()
                     .testTag("app_brand_header")
             ) {
@@ -438,11 +436,8 @@ fun HomeTab(viewModel: MainViewModel) {
                             }
 
                             Card(
-                                
-                                 categoryColor.copy(alpha = 0.35f) else categoryColor.copy(alpha = 0.25f)
-                                ),
-                                
-                                 0.dp else 3.dp), modifier = Modifier
+                                colors = CardDefaults.cardColors(containerColor = if (isDarkTheme) categoryColor.copy(alpha = 0.35f) else categoryColor.copy(alpha = 0.25f)),
+                                elevation = CardDefaults.cardElevation(defaultElevation = if (isDarkTheme) 0.dp else 3.dp), modifier = Modifier
                                     .weight(1f)
                                     .testTag("cat_card_$category")
                             ) {
@@ -520,15 +515,13 @@ fun HomeTab(viewModel: MainViewModel) {
             items(todayTransactions) { transaction ->
                 val isSuccess = !transaction.cardCode.contains("غير متوفر") && !transaction.cardCode.contains("فشل") && !transaction.cardCode.contains("تجاهل")
                 Card(
-                    
-                     {
+                    colors = CardDefaults.cardColors(containerColor = if (isSuccess) {
                             Color(0xFF4CAF50).copy(alpha = 0.25f).copy(alpha = 0.15f)
                         } else {
                             MaterialTheme.colorScheme.error.copy(alpha = 0.25f).copy(alpha = 0.15f)
                         }
                     ),
-                    
-                     0.dp else 2.dp), modifier = Modifier.fillMaxWidth().testTag("transaction_item_${transaction.id}")
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (isDarkTheme) 0.dp else 2.dp), modifier = Modifier.fillMaxWidth().testTag("transaction_item_${transaction.id}")
                 ) {
                     Row(
                         modifier = Modifier
@@ -1095,11 +1088,8 @@ border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorSchem
                 }
 
                 Card(
-                    
-                    
-                     MaterialTheme.colorScheme.outline
-                    ),
-                     0.dp else 2.dp), modifier = Modifier
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    elevation = CardDefaults.cardElevation(defaultElevation = if (isDarkTheme) 0.dp else 2.dp), modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
                             cardToConfirmSell = card

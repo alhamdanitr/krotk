@@ -24,10 +24,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "My Application"
 
-// تطبيق إدارة التراخيص هو الآن التطبيق الرئيسي (:app) ليتم بناؤه وتثبيته تلقائياً على المحاكي.
 include(":app")
-project(":app").projectDir = file("app")
-
-include(":kurotek")
-project(":kurotek").projectDir = file("kurotek")
 
