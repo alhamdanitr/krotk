@@ -1,18 +1,24 @@
-import { Injectable, OnModuleInit, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
-import * as fs from 'fs';
-import * as path from 'path';
+import { Injectable, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
 import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
+import { PrismaService } from '../prisma/prisma.service';
 
-export interface Client {
+// ---------------------------------------------------------------------------
+// شكل الاستجابة الخارجي (snake_case) يبقى كما هو تمامًا حتى تبقى متوافقة مع
+// server/api_server.js وتطبيق serial-admin بدون أي تعديل عليهما. Prisma
+// نفسها تستخدم camelCase داخليًا (الاتفاقية القياسية) ونحوّلها هنا فقط عند
+// إعادة الإرسال للعميل.
+// ---------------------------------------------------------------------------
+
+interface ClientJson {
   id: number;
   name: string;
   network_name: string;
   phone: string;
-  notes: string;
+  notes: string | null;
 }
 
-export interface Serial {
+interface SerialJson {
   id: number;
   client_id: number;
   serial_key: string;
@@ -20,27 +26,38 @@ export interface Serial {
   duration_months: number;
   start_date: string;
   end_date: string;
-  status: string; // UNUSED, ACTIVE, EXPIRED, REVOKED
-  notes: string;
+  status: string;
+  notes: string | null;
 }
 
-export interface SecurityLog {
-  id: number;
-  ip: string;
-  endpoint: string;
-  statusCode: number;
-  message: string;
-  payload: string;
-  timestamp: string;
+function toDateOnly(d: Date): string {
+  return d.toISOString().split('T')[0];
+}
+
+function clientToJson(c: { id: number; name: string; networkName: string; phone: string; notes: string | null }): ClientJson {
+  return { id: c.id, name: c.name, network_name: c.networkName, phone: c.phone, notes: c.notes };
+}
+
+function serialToJson(s: {
+  id: number; clientId: number; serialKey: string; deviceId: string | null;
+  durationMonths: number; startDate: Date; endDate: Date; status: string; notes: string | null;
+}): SerialJson {
+  return {
+    id: s.id,
+    client_id: s.clientId,
+    serial_key: s.serialKey,
+    device_id: s.deviceId,
+    duration_months: s.durationMonths,
+    start_date: toDateOnly(s.startDate),
+    end_date: toDateOnly(s.endDate),
+    status: s.status,
+    notes: s.notes,
+  };
 }
 
 @Injectable()
-export class SerialManagerService implements OnModuleInit {
-  private dbPath = path.resolve(__dirname, 'serials_db.json');
-  
-  private clients: Client[] = [];
-  private serials: Serial[] = [];
-  private logs: SecurityLog[] = [];
+export class SerialManagerService {
+  constructor(private prisma: PrismaService) {}
 
   // لا قيم افتراضية هنا: هذا المستودع عام على GitHub، وأي سر مكتوب صراحة بالكود
   // يصبح معروفًا لأي شخص. نفس القيم المستخدمة في server/api_server.js يجب أن
@@ -60,79 +77,17 @@ export class SerialManagerService implements OnModuleInit {
     return value;
   }
 
-  onModuleInit() {
-    this.loadDatabase();
-  }
-
-  private loadDatabase() {
-    try {
-      if (fs.existsSync(this.dbPath)) {
-        const data = JSON.parse(fs.readFileSync(this.dbPath, 'utf8'));
-        this.clients = data.clients || [];
-        this.serials = data.serials || [];
-        this.logs = data.logs || [];
-      } else {
-        // Seed default records if file doesn't exist
-        this.clients = [
-          { id: 1, name: 'أحمد بن سعد', network_name: 'شبكة الدحشة', phone: '771112223', notes: 'العميل الافتراضي الأول' }
-        ];
-        
-        // Generate a seed serial that works offline/online
-        const seedPhone = '771112223';
-        const rawData = seedPhone.trim().toUpperCase() + this.OFFLINE_SALT;
-        const hash = crypto.createHash('sha256').update(rawData).digest('hex').substring(0, 6).toUpperCase();
-        const seedSerialKey = `${seedPhone}-KS${hash}`;
-
-        this.serials = [
-          {
-            id: 1,
-            client_id: 1,
-            serial_key: seedSerialKey,
-            device_id: null, // Allow binding on first activation
-            duration_months: 12,
-            start_date: new Date().toISOString().split('T')[0],
-            end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            status: 'UNUSED',
-            notes: 'سيريال تجريبي نشط تلقائي'
-          }
-        ];
-        this.logs = [];
-        this.saveDatabase();
-      }
-    } catch (error) {
-      console.error('Failed to load serials database', error);
-    }
-  }
-
-  private saveDatabase() {
-    try {
-      const data = {
-        clients: this.clients,
-        serials: this.serials,
-        logs: this.logs
-      };
-      fs.writeFileSync(this.dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-      console.error('Failed to save serials database', error);
-    }
-  }
-
-  addLog(ip: string, endpoint: string, statusCode: number, message: string, payload: any = '') {
-    const entry: SecurityLog = {
-      id: this.logs.length + 1,
-      ip,
-      endpoint,
-      statusCode,
-      message,
-      payload: typeof payload === 'object' ? JSON.stringify(payload) : String(payload),
-      timestamp: new Date().toISOString()
-    };
-    this.logs.unshift(entry);
-    if (this.logs.length > 500) {
-      this.logs = this.logs.slice(0, 500); // Keep last 500 logs
-    }
-    this.saveDatabase();
-    console.log(`[LICENSING LOG] [${entry.timestamp}] [${ip}] [${endpoint}] [Status: ${statusCode}] - ${message}`);
+  async addLog(ip: string, endpoint: string, statusCode: number, message: string, payload: any = '') {
+    await this.prisma.adminSecurityLog.create({
+      data: {
+        ip,
+        endpoint,
+        statusCode,
+        message,
+        payload: typeof payload === 'object' ? JSON.stringify(payload) : String(payload),
+      },
+    });
+    console.log(`[LICENSING LOG] [${new Date().toISOString()}] [${ip}] [${endpoint}] [Status: ${statusCode}] - ${message}`);
   }
 
   // Verify HMAC signature of the payload to protect from MITM or tampering
@@ -164,20 +119,22 @@ export class SerialManagerService implements OnModuleInit {
     const { serial, deviceId } = body;
 
     if (!this.verifySignature(signature, timestamp, body)) {
-      this.addLog(clientIp, '/api/v1/serial/validate', 403, 'Signature verification failed (Potential tampering)', body);
+      await this.addLog(clientIp, '/api/v1/serial/validate', 403, 'Signature verification failed (Potential tampering)', body);
       throw new UnauthorizedException('🛡️ فشل تأكيد أمان الطلب أو التوقيع الرقمي غير متطابق!');
     }
 
     // Input sanitization against injection
     if (!/^[A-Z0-9_-]{4,60}$/i.test(serial) || !/^[A-Z0-9_-]{4,40}$/i.test(deviceId)) {
-      this.addLog(clientIp, '/api/v1/serial/validate', 400, 'Potential injection block', { serial, deviceId });
+      await this.addLog(clientIp, '/api/v1/serial/validate', 400, 'Potential injection block', { serial, deviceId });
       throw new BadRequestException('بيانات الإدخال تحتوي على رموز غير مسموح بها!');
     }
 
-    const serialRecord = this.serials.find(s => s.serial_key.toUpperCase() === serial.toUpperCase());
+    const serialRecord = await this.prisma.adminSerial.findFirst({
+      where: { serialKey: { equals: serial, mode: 'insensitive' } },
+    });
 
     if (!serialRecord) {
-      this.addLog(clientIp, '/api/v1/serial/validate', 404, `Activation failed: Serial ${serial} not found.`);
+      await this.addLog(clientIp, '/api/v1/serial/validate', 404, `Activation failed: Serial ${serial} not found.`);
       return {
         success: false,
         status: 'NOT_FOUND',
@@ -186,7 +143,7 @@ export class SerialManagerService implements OnModuleInit {
     }
 
     if (serialRecord.status === 'REVOKED') {
-      this.addLog(clientIp, '/api/v1/serial/validate', 403, `Activation rejected: Serial ${serial} is REVOKED.`);
+      await this.addLog(clientIp, '/api/v1/serial/validate', 403, `Activation rejected: Serial ${serial} is REVOKED.`);
       return {
         success: false,
         status: 'REVOKED',
@@ -195,11 +152,11 @@ export class SerialManagerService implements OnModuleInit {
     }
 
     const now = new Date();
-    const endDate = new Date(serialRecord.end_date);
-    if (now > endDate || serialRecord.status === 'EXPIRED') {
-      serialRecord.status = 'EXPIRED';
-      this.saveDatabase();
-      this.addLog(clientIp, '/api/v1/serial/validate', 403, `Activation rejected: Serial ${serial} is EXPIRED.`);
+    if (now > serialRecord.endDate || serialRecord.status === 'EXPIRED') {
+      if (serialRecord.status !== 'EXPIRED') {
+        await this.prisma.adminSerial.update({ where: { id: serialRecord.id }, data: { status: 'EXPIRED' } });
+      }
+      await this.addLog(clientIp, '/api/v1/serial/validate', 403, `Activation rejected: Serial ${serial} is EXPIRED.`);
       return {
         success: false,
         status: 'EXPIRED',
@@ -208,12 +165,13 @@ export class SerialManagerService implements OnModuleInit {
     }
 
     // First time activation & device-lock (Hardware locking)
-    if (!serialRecord.device_id) {
-      serialRecord.device_id = deviceId;
-      serialRecord.status = 'ACTIVE';
-      this.saveDatabase();
-      this.addLog(clientIp, '/api/v1/serial/validate', 200, `Successfully bound device ${deviceId} to serial ${serial}`);
-      
+    if (!serialRecord.deviceId) {
+      await this.prisma.adminSerial.update({
+        where: { id: serialRecord.id },
+        data: { deviceId, status: 'ACTIVE' },
+      });
+      await this.addLog(clientIp, '/api/v1/serial/validate', 200, `Successfully bound device ${deviceId} to serial ${serial}`);
+
       const token = jwt.sign({ serial, deviceId }, this.JWT_SECRET, { expiresIn: '365d' });
       return {
         success: true,
@@ -224,8 +182,8 @@ export class SerialManagerService implements OnModuleInit {
     }
 
     // Verify same device to prevent multi-device sharing
-    if (serialRecord.device_id !== deviceId) {
-      this.addLog(clientIp, '/api/v1/serial/validate', 403, `Device mismatch! Registered: ${serialRecord.device_id}, Requesting: ${deviceId}`);
+    if (serialRecord.deviceId !== deviceId) {
+      await this.addLog(clientIp, '/api/v1/serial/validate', 403, `Device mismatch! Registered: ${serialRecord.deviceId}, Requesting: ${deviceId}`);
       return {
         success: false,
         status: 'REVOKED',
@@ -234,10 +192,9 @@ export class SerialManagerService implements OnModuleInit {
     }
 
     // Re-verify existing device
-    serialRecord.status = 'ACTIVE';
-    this.saveDatabase();
-    this.addLog(clientIp, '/api/v1/serial/validate', 200, `Re-verified active serial ${serial} for device ${deviceId}`);
-    
+    await this.prisma.adminSerial.update({ where: { id: serialRecord.id }, data: { status: 'ACTIVE' } });
+    await this.addLog(clientIp, '/api/v1/serial/validate', 200, `Re-verified active serial ${serial} for device ${deviceId}`);
+
     const token = jwt.sign({ serial, deviceId }, this.JWT_SECRET, { expiresIn: '365d' });
     return {
       success: true,
@@ -251,117 +208,128 @@ export class SerialManagerService implements OnModuleInit {
   // 2. Admin dashboard management endpoints logic
   // -------------------------------------------------------------
   async getStats() {
-    const total = this.serials.length;
-    const active = this.serials.filter(s => s.status === 'ACTIVE').length;
-    const unused = this.serials.filter(s => s.status === 'UNUSED').length;
-    const revoked = this.serials.filter(s => s.status === 'REVOKED').length;
-    return { total, active, unused, revoked, logsCount: this.logs.length };
+    const [total, active, unused, revoked, logsCount] = await Promise.all([
+      this.prisma.adminSerial.count(),
+      this.prisma.adminSerial.count({ where: { status: 'ACTIVE' } }),
+      this.prisma.adminSerial.count({ where: { status: 'UNUSED' } }),
+      this.prisma.adminSerial.count({ where: { status: 'REVOKED' } }),
+      this.prisma.adminSecurityLog.count(),
+    ]);
+    return { total, active, unused, revoked, logsCount };
   }
 
   async getAllSerials() {
-    return this.serials.map(serial => {
-      const client = this.clients.find(c => c.id === serial.client_id);
-      return {
-        ...serial,
-        client_name: client ? client.name : 'Unknown',
-        client_phone: client ? client.phone : '',
-        client_network: client ? client.network_name : ''
-      };
+    const serials = await this.prisma.adminSerial.findMany({
+      include: { client: true },
+      orderBy: { id: 'desc' },
     });
+    return serials.map(s => ({
+      ...serialToJson(s),
+      client_name: s.client?.name ?? 'Unknown',
+      client_phone: s.client?.phone ?? '',
+      client_network: s.client?.networkName ?? '',
+    }));
   }
 
   async createSerial(body: any) {
-    const { name, network_name, phone, duration_months, notes } = body;
+    const { name, network_name, phone, duration_months, notes, device_id } = body;
 
     if (!name || !network_name || !phone) {
       throw new BadRequestException('يرجى تعبئة الحقول الإلزامية الاسم، الشبكة، والهاتف!');
     }
 
-    // 1. Create client
-    const clientId = this.clients.length + 1;
-    const newClient: Client = {
-      id: clientId,
-      name,
-      network_name,
-      phone,
-      notes: notes || ''
-    };
-    this.clients.push(newClient);
-
-    // 2. Generate online/offline verification hash from phone + salt
+    // Generate online/offline verification hash from phone + salt (نفس منطق server/api_server.js)
     const rawData = phone.trim().toUpperCase() + this.OFFLINE_SALT;
     const hash = crypto.createHash('sha256').update(rawData).digest('hex').substring(0, 6).toUpperCase();
     const finalSerialKey = `${phone.trim().toUpperCase()}-KS${hash}`;
 
     // Prevent duplicate serial key
-    if (this.serials.some(s => s.serial_key === finalSerialKey)) {
+    const existing = await this.prisma.adminSerial.findUnique({ where: { serialKey: finalSerialKey } });
+    if (existing) {
       throw new BadRequestException('السيريال الخاص بهذا الهاتف تم توليده مسبقاً!');
     }
 
-    // 3. Set duration dates
     const start = new Date();
     const end = new Date();
     const months = parseInt(duration_months || 12, 10);
     end.setMonth(end.getMonth() + months);
 
-    const newSerial: Serial = {
-      id: this.serials.length + 1,
-      client_id: clientId,
-      serial_key: finalSerialKey,
-      device_id: null, // Open for first device to bind
-      duration_months: months,
-      start_date: start.toISOString().split('T')[0],
-      end_date: end.toISOString().split('T')[0],
-      status: 'UNUSED',
-      notes: notes || ''
-    };
-    this.serials.push(newSerial);
-    this.saveDatabase();
+    const isPreBound = !!(device_id && String(device_id).trim());
 
-    return { success: true, serial: newSerial };
+    const created = await this.prisma.$transaction(async (tx) => {
+      const client = await tx.adminClient.create({
+        data: { name, networkName: network_name, phone, notes: notes || '' },
+      });
+      const serial = await tx.adminSerial.create({
+        data: {
+          clientId: client.id,
+          serialKey: finalSerialKey,
+          deviceId: isPreBound ? String(device_id).trim().toUpperCase() : null,
+          durationMonths: months,
+          startDate: start,
+          endDate: end,
+          status: isPreBound ? 'ACTIVE' : 'UNUSED',
+          notes: notes || '',
+        },
+      });
+      return serial;
+    });
+
+    return { success: true, serial: serialToJson(created) };
   }
 
   async resetDeviceLock(id: number) {
-    const serial = this.serials.find(s => s.id === id);
+    const serial = await this.prisma.adminSerial.findUnique({ where: { id } });
     if (!serial) {
       throw new NotFoundException('السيريال غير موجود!');
     }
-
-    serial.device_id = null;
-    serial.status = 'UNUSED';
-    this.saveDatabase();
+    await this.prisma.adminSerial.update({
+      where: { id },
+      data: { deviceId: null, status: 'UNUSED' },
+    });
     return { success: true, message: 'تم إلغاء قفل الجهاز بنجاح! السيريال جاهز للربط بهاتف جديد.' };
   }
 
   async toggleSerialStatus(id: number) {
-    const serial = this.serials.find(s => s.id === id);
+    const serial = await this.prisma.adminSerial.findUnique({ where: { id } });
     if (!serial) {
       throw new NotFoundException('السيريال غير موجود!');
     }
 
     if (serial.status === 'REVOKED') {
-      serial.status = serial.device_id ? 'ACTIVE' : 'UNUSED';
-      this.saveDatabase();
-      return { success: true, message: 'تمت إعادة تفعيل الترخيص بنجاح!', status: serial.status };
+      const newStatus = serial.deviceId ? 'ACTIVE' : 'UNUSED';
+      await this.prisma.adminSerial.update({ where: { id }, data: { status: newStatus } });
+      return { success: true, message: 'تمت إعادة تفعيل الترخيص بنجاح!', status: newStatus };
     } else {
-      serial.status = 'REVOKED';
-      this.saveDatabase();
+      await this.prisma.adminSerial.update({ where: { id }, data: { status: 'REVOKED' } });
       return { success: true, message: 'تم إلغاء وتجميد ترخيص هذا السيريال بنجاح!', status: 'REVOKED' };
     }
   }
 
   async deleteSerial(id: number) {
-    const index = this.serials.findIndex(s => s.id === id);
-    if (index === -1) {
+    const serial = await this.prisma.adminSerial.findUnique({ where: { id } });
+    if (!serial) {
       throw new NotFoundException('السيريال غير موجود!');
     }
-
-    this.serials.splice(index, 1);
-    this.saveDatabase();
+    // حذف السيريال والعميل المرتبط به معًا (نفس سلوك server/api_server.js:
+    // "تم حذف السيريال والعميل نهائياً من النظام")
+    await this.prisma.adminClient.delete({ where: { id: serial.clientId } });
     return { success: true, message: 'تم حذف السيريال والعميل نهائياً من النظام!' };
   }
 
   async getLogs() {
-    return this.logs;
+    const logs = await this.prisma.adminSecurityLog.findMany({
+      orderBy: { id: 'desc' },
+      take: 100,
+    });
+    return logs.map(l => ({
+      id: l.id,
+      ip: l.ip,
+      endpoint: l.endpoint,
+      statusCode: l.statusCode,
+      message: l.message,
+      payload: l.payload,
+      timestamp: l.timestamp.toISOString(),
+    }));
   }
 }

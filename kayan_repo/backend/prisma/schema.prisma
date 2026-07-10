@@ -330,17 +330,53 @@ model DistributorExpense {
   @@map("distributor_expenses")
 }
 
-model DistributorCapital {
-  id             String   @id @default(uuid())
-  tenantId       String   @map("tenant_id")
-  type           String   @db.VarChar(30) // injection (إيداع), withdrawal (سحب)
-  amount         Int
-  description    String?  @db.Text
-  createdAt      DateTime @default(now()) @map("created_at")
-  
-  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
-  @@index([tenantId, createdAt])
-  @@map("distributor_capital")
+// -----------------------------------------------------------------------------
+// LEGACY SERIAL ADMIN PANEL (نظام السيريالات القديم المستخدم من serial-admin app
+// وتطبيق الكروت الحالي) — نُقل من ملف JSON محلي إلى PostgreSQL هنا لمنع فقدان
+// البيانات عند إعادة النشر على Render (القرص المحلي مؤقت/ephemeral).
+// أُبقيت الحقول بنفس الأسماء ونوع المعرّف (Int تسلسلي) عمدًا حتى تبقى متوافقة
+// تمامًا مع server/api_server.js وتطبيق serial-admin بدون أي تعديل عليهما.
+// -----------------------------------------------------------------------------
+
+model AdminClient {
+  id          Int           @id @default(autoincrement())
+  name        String
+  networkName String        @map("network_name")
+  phone       String
+  notes       String?       @db.Text
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  serials     AdminSerial[]
+
+  @@map("admin_clients")
 }
+
+model AdminSerial {
+  id             Int         @id @default(autoincrement())
+  clientId       Int         @map("client_id")
+  serialKey      String      @unique @map("serial_key")
+  deviceId       String?     @map("device_id")
+  durationMonths Int         @map("duration_months")
+  startDate      DateTime    @map("start_date")
+  endDate        DateTime    @map("end_date")
+  status         String      @default("UNUSED") @db.VarChar(20) // UNUSED, ACTIVE, REVOKED
+  notes          String?     @db.Text
+
+  client         AdminClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("admin_serials")
+}
+
+model AdminSecurityLog {
+  id         Int      @id @default(autoincrement())
+  ip         String?
+  endpoint   String?
+  statusCode Int?     @map("status_code")
+  message    String?  @db.Text
+  payload    String?  @db.Text
+  timestamp  DateTime @default(now())
+
+  @@map("admin_security_logs")
+}
+
 

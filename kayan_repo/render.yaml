@@ -4,7 +4,7 @@ services:
     name: kurotek-admin
     env: node
     region: frankfurt
-    rootDir: admin
+    rootDir: .
     buildCommand: npm install -g pnpm && pnpm install && pnpm run build
     startCommand: pnpm run start
     envVars:
@@ -29,6 +29,14 @@ services:
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
+      - key: HMAC_SECRET
+        generateValue: true
+      - key: SERIAL_OFFLINE_SALT
+        generateValue: true
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
 
 databases:
   # 3. قاعدة البيانات (PostgreSQL)
