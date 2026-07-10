@@ -1,21 +1,39 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Kurotek / Dahshacards — نظام بيع كروت الإنترنت التلقائي
 
-# Run and deploy your AI Studio app
+نظام لبيع وتوزيع كروت إنترنت/ميكروتك، يرصد تحويلات المحافظ اليمنية (جيب، جوالي، الكريمي، حسب، ون كاش، أم فلوس) عبر SMS، ويرسل الكرت تلقائيًا، مع نظام حاسبة موزع كامل (عملاء، ديون، مصاريف، رأس مال).
 
-This contains everything you need to run your app locally.
+## هيكلة المستودع
 
-View your app in AI Studio: https://ai.studio/apps/bf1de360-c8a9-4cc8-828d-42ba5ae4c29f
+```
+app/            تطبيق الأندرويد الرئيسي (Jetpack Compose) — applicationId: com.aistudio.dahshacards
+kayan_repo/     المنصة الكاملة:
+  ├── mobile/     نفس تطبيق app/ + ميزات متقدمة إضافية (مزامنة WebSocket فورية،
+  │               تحليل SMS بالذكاء الاصطناعي عبر Gemini، اختبارات Unit/UI)
+  ├── backend/    الخلفية الرسمية (NestJS + Prisma) — نظام SaaS متعدد المستأجرين،
+  │               يشمل serial-manager (إنشاء/تفعيل السيريالات)، محرك SMS، المحاسبة، إلخ
+  └── app/        لوحة تحكم الويب (Next.js) — dashboard/cards/wallets/pending/reports/settings
+server/         السيرفر القديم (Express) المستخدم حاليًا فعليًا للتفعيل/المزامنة
+                على https://kayan-licensing-server.onrender.com — ⚠️ يحتاج إصلاح أمني عاجل
+                (راجع قسم التحذيرات الأمنية أدناه) قبل الاعتماد عليه لفترة أطول
+```
 
-## Run Locally
+`kurotek/` (الوحدة القديمة الأولى) تم حذفها بعد التأكد من نقل كل ميزاتها بالكامل (30 ملف Kotlin،
+الشاشات، الألوان، التصاميم) إلى `app/` و`kayan_repo/mobile` بشكل مطابق ومؤكد.
 
-**Prerequisites:**  [Android Studio](https://developer.android.com/studio)
+## ⚠️ تحذيرات أمنية عاجلة (لم تُعالج بعد)
 
+1. `server/api_server.js`: يحتوي على باب خلفي صريح (`relaxed_access_authorized_by_owner`) ومفاتيح
+   JWT/HMAC افتراضية مكتوبة بالكود. هذا هو السيرفر الفعلي الذي يعتمد عليه التطبيق حاليًا للتفعيل.
+2. `kayan_repo/backend` (`serial-manager.controller.ts`): كل نقاط إدارة السيريالات
+   (`create`, `delete`, `toggle`, `reset`, `list`, `logs`) مُعرّفة `@Public()` بدون أي مصادقة.
+3. لا توجد بعد صفحة واجهة (UI) لإنشاء/إدارة السيريالات داخل `kayan_repo/app` — الأداة الوحيدة
+   العاملة حاليًا هي `server/admin_panel.html` القديمة.
 
-1. Open Android Studio
-2. Select **Open** and choose the directory containing this project
-3. Allow Android Studio to fix any incompatibilities as it imports the project.
-4. Create a file named `.env` in the project directory and set `GEMINI_API_KEY` in that file to your Gemini API key (see `.env.example` for an example)
-5. Remove this line from the app's `build.gradle.kts` file: `signingConfig = signingConfigs.getByName("debugConfig")`
-6. Run the app on an emulator or physical device
+## التشغيل محليًا
+
+**المتطلبات:** [Android Studio](https://developer.android.com/studio)، Node.js، pnpm (للـ backend)
+
+1. افتح `kayan_repo/mobile` في Android Studio لتشغيل تطبيق الأندرويد الكامل بكل الميزات
+2. لتشغيل الباك-إند: `cd kayan_repo/backend && pnpm install && pnpm run start:dev`
+3. لتشغيل لوحة التحكم: `cd kayan_repo/app && npm install && npm run dev`
+

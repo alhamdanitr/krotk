@@ -1,9 +1,0 @@
-path = "kurotek/src/main/java/com/example/ui/MainDashboardScreen.kt"
-with open(path, 'r', encoding='utf-8') as f:
-    c = f.read()
-
-c = c.replace('label = { Text(option,\n                                \n                                colors', 'label = { Text(option) },\n                                colors')
-
-with open(path, 'w', encoding='utf-8') as f:
-    f.write(c)
-
