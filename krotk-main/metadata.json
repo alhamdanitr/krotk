@@ -1,0 +1,6 @@
+{
+  "name": "كروتك",
+  "description": "بوابة إدارة التراخيص الآمنة لتوليد وإدارة سيريالات وتراخيص تطبيق كروتك والربط بـ Device ID.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

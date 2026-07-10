@@ -1,0 +1,482 @@
+# وثيقة التصميم الهندسي (SDD)
+## مشروع "كروتك" / Kayansoft — النظام الجديد (Production Ready)
+
+| الحقل | القيمة |
+|------|--------|
+| نوع الوثيقة | Software Design Document (SDD) / Solution Architecture |
+| الإصدار | 1.0 (تصميم النظام الجديد) |
+| الحالة | مسودة بانتظار الموافقة قبل بدء التنفيذ |
+| المرجع | `docs/SRS.md` + `PROJECT_RULES.md` |
+| الـ Backend | Node.js · NestJS · Prisma · PostgreSQL · Railway · JWT · REST · Docker |
+| تطبيق الهاتف | Flutter · Clean Architecture · Feature‑First · Riverpod · Dio · GoRouter |
+
+> **ملاحظة:** هذه وثيقة تصميم هندسي بحتة. **لم يُكتب أي كود ولم يُنشأ أي مشروع.** مقاطع "الكود" الواردة أدناه هي *نماذج توضيحية للهيكل والعقود* فقط لتوصيف التصميم، ولن تُنفَّذ إلا بعد موافقتك مرحلةً بمرحلة.
+
+---
+
+## 1. نظرة عامة على المعمارية (Architecture Overview)
+
+### 1.1 النمط المعماري العام
+نتبنّى معمارية **Client–Server ثلاثية الطبقات** مع فصل واضح للمسؤوليات، وإضافة عنصر جوهري فرضه تحليل الفجوة (SRS §13): **عميل التقاط الرسائل (SMS Agent)**.
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                         طبقة العميل (Clients)                          │
+│                                                                        │
+│   ┌────────────────────────┐        ┌──────────────────────────────┐  │
+│   │  تطبيق Flutter (الإدارة) │        │  SMS Agent (Android Service) │  │
+│   │  لوحة تحكم المشغّل       │        │  يلتقط رسائل المحافظ ويرسلها  │  │
+│   │  المخزون/التقارير/الإعداد │        │  للـ API عبر HTTPS           │  │
+│   └───────────┬────────────┘        └───────────────┬──────────────┘  │
+└───────────────┼──────────────────────────────────────┼────────────────┘
+                │ REST + JWT (HTTPS)                      │ REST + Device Token
+                ▼                                         ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                    طبقة التطبيق (NestJS API)                            │
+│  Auth · Users · Tenants · Cards · Categories · Wallets · Ingestion     │
+│  Parsing Engine · Distribution Engine · Approvals · Mappings ·         │
+│  Deposits · Transactions · Reports · Notifications · Settings          │
+│                                                                        │
+│  Guards (JWT/Roles) · Pipes (Validation) · Interceptors · Filters      │
+└───────────────────────────────┬──────────────────────────────────────┘
+                                │ Prisma Client
+                                ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                  طبقة البيانات (PostgreSQL on Railway)                 │
+│  Prisma Migrations · قيود FK · فهارس · Idempotency · Soft Delete       │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+### 1.2 القرار المحوري: كيف تصل رسائل SMS إلى الخادم؟
+الخادم لا يستطيع قراءة رسائل المحافظ. لذلك نفصل النظام القديم (تطبيق واحد يفعل كل شيء) إلى مكوّنين:
+
+1. **SMS Agent (تطبيق أندرويد خفيف):** مسؤوليته الوحيدة التقاط رسائل المحافظ في الخلفية وإعادة توجيه نصها الخام + بيانات وصفية إلى `POST /ingestion/sms` عبر **رمز جهاز (Device Token)**. لا يحوي منطق عمل.
+2. **منطق العمل بالكامل ينتقل للخادم (NestJS):** التحليل، اختيار الكارت، التوزيع، التفويضات، التقارير. هذا يحقق مبدأ **DRY** (الوارد في `PROJECT_RULES.md`) بإزالة التكرار الثلاثي القديم، ويتيح التعدد والتوسع.
+
+> **الإرسال للعميل:** نوصي بمسارين قابلين للتهيئة لكل مستأجر — (أ) إرسال الكارت عبر بوابة SMS سحابية (Twilio / مزوّد محلي) من الخادم مباشرة، أو (ب) إعادة أمر الإرسال إلى الـ Agent لإرساله عبر شريحة الجهاز (للحفاظ على نموذج التكلفة الحالي). يُحسم الخيار في الأسئلة الموجّهة قبل التنفيذ.
+
+### 1.3 مبادئ التصميم الحاكمة
+- **Separation of Concerns / Clean Architecture** في الطرفين.
+- **Single Source of Truth** = قاعدة بيانات الخادم.
+- **Multi‑Tenancy** منذ اليوم الأول (كل البيانات معزولة بـ `tenantId`).
+- **Idempotency** لمنع المعالجة المزدوجة للرسالة الواحدة.
+- **Stateless API** + JWT لتسهيل التوسع الأفقي.
+- **Configuration over Code** (أنماط المحافظ والقوالب تُدار بيانات لا كوداً صلباً قدر الإمكان).
+
+---
+
+## 2. اختيار التقنيات وسببها (Technology Choices & Rationale)
+
+### 2.1 الـ Backend
+| التقنية | السبب |
+|--------|-------|
+| **Node.js** | أداء غير حاجب (I/O‑bound مثالي لمعالجة الرسائل/الطلبات)، نظام حزم غني، فريق واحد بلغة واحدة مع Flutter (Dart) من حيث أسلوب العمل. |
+| **NestJS** | إطار رأي‑موجّه (Opinionated) يفرض بنية Modules/Providers، حقن تبعيات (DI) مدمج، Guards/Pipes/Interceptors تجعل الأمان والتحقق منهجيين — يقلل الديون التقنية مقابل Express الخام. |
+| **Prisma ORM** | أمان أنواع كامل (Type‑safe)، Migrations حتمية ومُتعقَّبة (تعالج خطر `fallbackToDestructiveMigration` القديم)، استعلامات واضحة، Studio للفحص. |
+| **PostgreSQL** | علاقاتي قوي يدعم القيود/الفهارس/المعاملات (Transactions) — ضروري لسلامة التوزيع المالي ومنع توزيع الكارت مرتين. JSONB لتخزين الحمولات المرنة (raw SMS/templates). |
+| **Railway** | نشر مُدار بسيط لـ Postgres + الخدمة، متغيرات بيئة، نسخ احتياطي، ترقية أفقية سهلة. |
+| **JWT** | مصادقة عديمة الحالة (Access + Refresh)، تدعم الأدوار (RBAC)، تحل محل السيريال الثابت المضمّن. |
+| **REST** | بساطة، توافق واسع مع Flutter/Dio، سهولة التوثيق (OpenAPI/Swagger). |
+| **Docker** | بيئة موحّدة (Dev/Prod)، يسهّل النشر على Railway وأي مزود لاحقاً، يعزل التبعيات. |
+
+تقنيات داعمة مقترحة: **class‑validator/class‑transformer** (تحقق DTO)، **@nestjs/swagger** (توثيق)، **@nestjs/config** (إعدادات)، **Pino** (تسجيل)، **BullMQ + Redis** (طوابير للإرسال/إعادة المحاولة — اختياري لمرحلة لاحقة)، **Jest** (اختبارات).
+
+### 2.2 تطبيق Flutter
+| التقنية | السبب |
+|--------|-------|
+| **Flutter** | واجهة واحدة عبر Android/iOS (وويب لاحقاً)، أداء أصلي، دعم RTL عربي ممتاز يطابق متطلب الواجهة الحالية. |
+| **Clean Architecture** | فصل (Presentation/Domain/Data) يجعل المنطق قابلاً للاختبار ومستقلاً عن الأطر. |
+| **Feature‑First** | تنظيم حسب الميزة لا حسب النوع → قابلية تطوير وصيانة أعلى لفريق ينمو. |
+| **Riverpod** | إدارة حالة حديثة، آمنة الأنواع، قابلة للاختبار، بلا اعتماد على شجرة الـ context، تدعم async/caching. |
+| **Dio** | عميل HTTP قوي: Interceptors (إرفاق JWT، تجديد التوكن، تسجيل، معالجة أخطاء موحّدة)، تتبّع تقدم، إلغاء. |
+| **GoRouter** | توجيه تصريحي، دعم Deep Linking، حُرّاس مسارات (redirect) للمصادقة. |
+
+تقنيات داعمة مقترحة: **freezed + json_serializable** (نماذج غير قابلة للتغيير + (de)serialization)، **flutter_secure_storage** (تخزين التوكن بأمان)، **get_it/Riverpod** (DI)، **intl** (تعريب)، **mocktail** (اختبارات).
+
+---
+
+## 3. هيكل مشروع الـ Backend (NestJS) بالكامل
+
+```
+kayansoft-backend/
+├── docker-compose.yml              # postgres + api للتطوير
+├── Dockerfile                      # بناء إنتاجي متعدد المراحل
+├── .env.example
+├── prisma/
+│   ├── schema.prisma               # المخطط + المولّد
+│   ├── migrations/                 # ترحيلات متعقَّبة (لا destructive)
+│   └── seed.ts                     # بيانات أولية (أدوار/مستأجر تجريبي)
+├── src/
+│   ├── main.ts                     # bootstrap + Swagger + ValidationPipe عام
+│   ├── app.module.ts
+│   ├── common/                     # عناصر مشتركة عبر الموديولات
+│   │   ├── decorators/             # @CurrentUser @Roles @Tenant
+│   │   ├── guards/                 # JwtAuthGuard RolesGuard TenantGuard DeviceGuard
+│   │   ├── interceptors/           # Logging Transform(response) Timeout
+│   │   ├── filters/                # AllExceptionsFilter (شكل خطأ موحّد)
+│   │   ├── pipes/                  # ParseObjectIdPipe ... تحقق إضافي
+│   │   ├── dto/                    # PaginationDto ApiResponse generic
+│   │   └── utils/                  # idempotency, money, phone-normalizer
+│   ├── config/                     # config.module + schema تحقق متغيرات البيئة
+│   ├── prisma/                     # PrismaModule + PrismaService
+│   └── modules/
+│       ├── auth/                   # تسجيل/دخول/تجديد توكن/كلمة مرور
+│       │   ├── auth.module.ts
+│       │   ├── auth.controller.ts
+│       │   ├── auth.service.ts
+│       │   ├── strategies/         # jwt.strategy.ts · jwt-refresh.strategy.ts
+│       │   └── dto/                # login.dto · register.dto · refresh.dto
+│       ├── users/                  # إدارة المستخدمين والأدوار
+│       ├── tenants/                # المستأجرون (المحلات/الشبكات)
+│       ├── devices/                # أجهزة الـ SMS Agent + Device Tokens
+│       ├── wallets/                # تعريف المحافظ + تفعيلها لكل مستأجر
+│       ├── categories/             # الفئات الديناميكية
+│       ├── cards/                  # المخزون: إضافة جماعية/تصفية/حذف/عدّادات
+│       ├── parsing/               # محرّك التحليل: أنماط + قوالب + AI
+│       │   ├── parsing.service.ts  # يطابق نص SMS → {amount, identifier, wallet}
+│       │   ├── rules/              # تعريفات أنماط المحافظ (data-driven)
+│       │   └── ai/                 # موفّر AI اختياري (Gemini/AI Gateway)
+│       ├── ingestion/             # استقبال SMS الخام من الـ Agent (Idempotent)
+│       ├── distribution/         # محرّك التوزيع: اختيار كارت ذرّي + إرسال
+│       ├── approvals/             # التفويضات المعلّقة (موافقة/رفض/تعديل)
+│       ├── mappings/              # مطابقات العملاء الاستثنائيين
+│       ├── deposits/              # سجل الإيداعات
+│       ├── transactions/         # سجل المعاملات + تصدير CSV
+│       ├── reports/               # إحصاءات وتجميعات
+│       ├── notifications/        # دفع الأحداث (FCM/Realtime) — مرحلة لاحقة
+│       └── settings/             # قوالب الرسائل وتفضيلات المستأجر
+└── test/                          # e2e + وحدات (تركيز على parsing/distribution)
+```
+
+**ملاحظات تصميمية:**
+- كل موديول مغلق المسؤولية (Controller → Service → Prisma)، والمنطق التشغيلي الحسّاس (التحليل/التوزيع) معزول في خدمات قابلة للاختبار بمعزل عن HTTP.
+- `ingestion` و`distribution` منفصلان: الأول يستقبل ويثبّت الرسالة (Idempotency)، والثاني يقرر ويوزّع — ما يسهّل إعادة المحاولة والاختبار.
+
+---
+
+## 4. هيكل مشروع Flutter بالكامل
+
+```
+kayansoft_app/
+├── pubspec.yaml
+└── lib/
+    ├── main.dart                    # ProviderScope + bootstrap
+    ├── app.dart                     # MaterialApp.router + theme (RTL/dark)
+    ├── core/                        # مشترك عبر الميزات
+    │   ├── config/                  # env, api base url, flavors
+    │   ├── theme/                   # ألوان/خطوط/مكوّنات (مستوحاة من Disgain)
+    │   ├── router/                  # app_router.dart (GoRouter + redirects)
+    │   ├── network/                 # dio_client.dart + interceptors (auth/refresh/error)
+    │   ├── error/                   # failures.dart · exceptions.dart
+    │   ├── storage/                 # secure_storage (tokens)
+    │   ├── usecase/                 # UseCase<Type, Params> base
+    │   └── widgets/                 # مكوّنات UI عامة (buttons, cards, empty states)
+    └── features/
+        ├── auth/
+        │   ├── data/                # datasources (remote) · models · repository_impl
+        │   ├── domain/              # entities · repositories(abstract) · usecases
+        │   └── presentation/        # screens · widgets · providers (Riverpod)
+        ├── dashboard/               # الرئيسية: حالة الخدمة + عدّادات المخزون
+        ├── cards/                   # المخزون: إضافة/تصفية/حذف/عدّادات
+        ├── categories/              # إدارة الفئات
+        ├── approvals/               # التفويضات المعلّقة
+        ├── customers/               # مطابقات العملاء
+        ├── reports/                 # إيداعات/معاملات/تصدير/إحصاءات
+        ├── wallets/                 # تفعيل/تعطيل المحافظ
+        └── settings/                # القوالب/المظهر/كلمة المرور/الأجهزة
+```
+
+**التطابق مع Clean Architecture (لكل ميزة):**
+- **domain:** كيانات نقية + عقود Repository + UseCases (لا تبعية للأطر).
+- **data:** نماذج (freezed/json) + DataSources (Dio) + تنفيذ Repository (يحوّل DTO→Entity + يعالج الأخطاء→Failures).
+- **presentation:** شاشات + ودجِت + Providers (Riverpod) تستدعي UseCases فقط.
+
+> الـ **SMS Agent** يبقى تطبيق أندرويد منفصلاً (Kotlin خفيف أو وحدة Flutter‑Android بلاتفورم channel). لا يحوي شاشات إدارة — فقط خدمة خلفية + شاشة ربط بالجهاز/الحالة.
+
+---
+
+## 5. تصميم قاعدة البيانات (ERD، الجداول، العلاقات)
+
+### 5.1 مخطط العلاقات (نصّي)
+```
+Tenant 1───* User
+Tenant 1───* Device
+Tenant 1───* Wallet(TenantWalletConfig)
+Tenant 1───* Category
+Tenant 1───* Card            (Category 1───* Card)
+Tenant 1───* CustomerMapping
+Tenant 1───* InboundMessage  (Device 1───* InboundMessage)
+InboundMessage 1───0..1 Deposit
+Deposit 1───0..1 PendingApproval
+Deposit 1───0..1 Transaction
+Card 1───0..1 Transaction    (الكارت الموزَّع)
+Tenant 1───* MessageTemplate
+Tenant 1───1 TenantSettings
+```
+
+### 5.2 الجداول الرئيسية وحقولها
+
+**Tenant** — المستأجر (محل/شبكة)
+`id (uuid pk) · name · networkName · status(active/suspended) · createdAt · updatedAt`
+
+**User** — المستخدمون
+`id · tenantId(fk) · email/username · passwordHash · role(OWNER/ADMIN/OPERATOR) · isActive · lastLoginAt · createdAt`
+
+**Device** — أجهزة الـ SMS Agent
+`id · tenantId(fk) · label · deviceTokenHash · platform · lastSeenAt · isActive · createdAt`
+
+**Wallet** — كتالوج المحافظ (مرجعي عام)
+`id · key(jeeb/jawali/kuraimi/onecash/mfloos/haseb) · displayName · countryCode`
+
+**TenantWalletConfig** — تفعيل المحفظة لكل مستأجر
+`id · tenantId(fk) · walletId(fk) · isEnabled · createdAt`  *(فريد: tenantId+walletId)*
+
+**Category** — الفئات الديناميكية
+`id · tenantId(fk) · value(int) · label · isActive · createdAt`  *(فريد: tenantId+value)*
+
+**Card** — المخزون
+`id · tenantId(fk) · categoryId(fk) · code · username? · password? · format(USER_PASS/USER_ONLY) · status(AVAILABLE/RESERVED/USED/VOID) · reservedAt? · usedAt? · createdAt`
+*فهارس: (tenantId, categoryId, status) — لاختيار سريع لأول كارت متاح.*
+
+**CustomerMapping** — العملاء الاستثنائيون
+`id · tenantId(fk) · customerUniqueId · basicPhone · customerName · walletId? · createdAt`  *(فريد: tenantId+customerUniqueId)*
+
+**InboundMessage** — الرسائل الخام الواردة (بوابة Idempotency)
+`id · tenantId(fk) · deviceId(fk) · rawBody · sender · receivedAt · dedupHash(unique) · status(RECEIVED/PARSED/IGNORED/FAILED) · parsedAmount? · parsedIdentifier? · walletId? · isAccountCode · createdAt`
+*فريد: (tenantId, dedupHash) لمنع المعالجة المزدوجة (NFR/Idempotency).*
+
+**Deposit** — الإيداعات
+`id · tenantId(fk) · inboundMessageId(fk) · phone · amount · walletId(fk) · status(PENDING/COMPLETED/REJECTED/FAILED) · cardDetails? · createdAt`
+
+**PendingApproval** — التفويضات المعلّقة
+`id · tenantId(fk) · depositId(fk unique) · phone · amount · walletId(fk) · isAccountCode · status(PENDING/APPROVED/REJECTED) · createdAt`
+
+**Transaction** — المعاملات (سجل أرشيفي)
+`id · tenantId(fk) · depositId(fk) · cardId(fk) · phone · amount · cardCode · walletId(fk) · result(SUCCESS/FAILED/REJECTED) · sentAt? · createdAt`
+*فهارس: (tenantId, createdAt)، (tenantId, walletId) للتقارير.*
+
+**MessageTemplate** — قوالب الرسائل والقوالب المعتمدة للتحليل
+`id · tenantId(fk) · type(GENERAL/ACCOUNT_CODE/APPROVED_PARSE) · body · variablesMeta(jsonb) · isActive · createdAt`
+
+**TenantSettings** — إعدادات المستأجر
+`id · tenantId(fk unique) · serviceEnabled · autoSend · darkTheme · accountCodeDefaultPhone? · aiApiKeyEncrypted? · notificationClickCompose · updatedAt`
+
+**RefreshToken** (اختياري لإدارة الجلسات) `id · userId(fk) · tokenHash · expiresAt · revokedAt?`
+
+### 5.3 قواعد سلامة البيانات
+- كل الجداول التشغيلية تحمل `tenantId` (عزل المستأجرين).
+- قيود **FK حقيقية** بدلاً من الربط المنطقي القديم.
+- **Soft delete** للكيانات الحسّاسة (الكروت/المعاملات) عبر `status=VOID` بدل الحذف الفيزيائي حيثما يلزم التدقيق.
+- **Transactions ذرّية** عند التوزيع: حجز الكارت (RESERVED) ثم تثبيته (USED) ضمن معاملة واحدة لمنع التوزيع المزدوج (يعالج NFR‑02).
+
+---
+
+## 6. تصميم الـ REST APIs
+
+### 6.1 الاتفاقيات العامة
+- المسار الأساس: `/api/v1`. كل المسارات (عدا auth والـ ingestion) محمية بـ `JwtAuthGuard` + `TenantGuard`.
+- شكل استجابة موحّد: `{ success, data, meta?, error? }`. أخطاء موحّدة عبر `AllExceptionsFilter`.
+- ترقيم الصفحات: `?page=&limit=&sort=`. التصفية عبر query params.
+- توثيق تلقائي عبر **Swagger** على `/api/docs`.
+
+### 6.2 جداول النهايات (Endpoints)
+
+**Auth**
+| Method | Path | الوصف |
+|--------|------|-------|
+| POST | `/auth/register` | إنشاء مستأجر + مالك (Bootstrapping) |
+| POST | `/auth/login` | دخول → access + refresh |
+| POST | `/auth/refresh` | تجديد التوكن |
+| POST | `/auth/logout` | إبطال refresh |
+| PATCH | `/auth/password` | تغيير كلمة المرور |
+| GET | `/auth/me` | المستخدم الحالي |
+
+**Ingestion (للـ SMS Agent — مصادقة Device Token)**
+| POST | `/ingestion/sms` | استقبال رسالة خام (Idempotent عبر dedupHash) → تُجدوَل للتحليل |
+| POST | `/ingestion/heartbeat` | نبض حالة الجهاز |
+| GET | `/ingestion/outbox` | (إن اعتُمد إرسال عبر الجهاز) أوامر إرسال معلّقة للـ Agent |
+| POST | `/ingestion/sms-result` | تأكيد نتيجة إرسال من الجهاز |
+
+**Cards / Categories**
+| GET | `/cards` | قائمة + تصفية (category/status) + ترقيم |
+| POST | `/cards/bulk` | إضافة جماعية (نص متعدد التنسيقات) |
+| POST | `/cards/extract` | استخراج كروت من نص عبر AI |
+| DELETE | `/cards/:id` | حذف/إبطال كارت |
+| DELETE | `/cards` | حذف بالجملة (بفلتر) |
+| GET | `/cards/stats` | عدّادات المخزون لكل فئة + الإجمالي |
+| GET/POST/DELETE | `/categories` `/categories/:id` | إدارة الفئات |
+
+**Wallets / Settings**
+| GET/PATCH | `/wallets` `/wallets/:id/config` | تفعيل/تعطيل المحافظ |
+| GET/PATCH | `/settings` | إعدادات المستأجر (الخدمة/التوزيع التلقائي/المظهر...) |
+| GET/POST/PATCH/DELETE | `/templates` | قوالب الرسائل والقوالب المعتمدة |
+
+**Approvals / Mappings**
+| GET | `/approvals` | التفويضات المعلّقة |
+| POST | `/approvals/:id/approve` | موافقة → توزيع |
+| POST | `/approvals/:id/reject` | رفض |
+| PATCH | `/approvals/:id` | تعديل رقم العميل قبل الإرسال |
+| GET/POST/PATCH/DELETE | `/mappings` | مطابقات العملاء |
+
+**Deposits / Transactions / Reports**
+| GET | `/deposits` | الإيداعات + تصفية |
+| GET | `/transactions` | المعاملات + تصفية |
+| GET | `/transactions/export` | تصدير CSV (عام/لعميل) |
+| GET | `/reports/summary` | إحصاءات (مبيعات/فئات/محافظ/حالات) |
+
+**Devices / Users (إدارة)**
+| GET/POST/DELETE | `/devices` | تسجيل/إلغاء أجهزة الـ Agent |
+| GET/POST/PATCH/DELETE | `/users` | إدارة المستخدمين (OWNER/ADMIN) |
+
+---
+
+## 7. تقسيم Modules في NestJS
+
+| Module | المسؤولية | يعتمد على |
+|--------|-----------|-----------|
+| **AuthModule** | المصادقة/التوكنات/الاستراتيجيات | Users, Prisma |
+| **UsersModule** | إدارة المستخدمين والأدوار | Prisma |
+| **TenantsModule** | المستأجرون + عزلهم | Prisma |
+| **DevicesModule** | أجهزة الـ Agent + Device Tokens | Prisma |
+| **WalletsModule** | كتالوج المحافظ + تهيئتها لكل مستأجر | Prisma |
+| **CategoriesModule** | الفئات الديناميكية | Prisma |
+| **CardsModule** | المخزون + الإضافة الجماعية + العدّادات | Categories, Prisma, Parsing(AI) |
+| **ParsingModule** | تحليل نص SMS (أنماط/قوالب/AI) | Wallets, Templates |
+| **IngestionModule** | استقبال الرسائل + Idempotency + الجدولة | Parsing, Distribution, Devices |
+| **DistributionModule** | اختيار الكارت الذرّي + الإرسال + التسجيل | Cards, Deposits, Transactions, Mappings, Settings |
+| **ApprovalsModule** | التفويضات المعلّقة | Distribution, Deposits |
+| **MappingsModule** | مطابقات العملاء | Prisma |
+| **DepositsModule** | سجل الإيداعات | Prisma |
+| **TransactionsModule** | المعاملات + CSV | Prisma |
+| **ReportsModule** | تجميعات وإحصاءات | Prisma |
+| **NotificationsModule** | دفع الأحداث (FCM/Realtime) | — (مرحلة لاحقة) |
+| **SettingsModule / TemplatesModule** | إعدادات وقوالب المستأجر | Prisma |
+| **PrismaModule / ConfigModule / CommonModule** | بنية تحتية مشتركة | — |
+
+**أبرز تدفق داخلي:** `IngestionModule` يستقبل ← يثبّت `InboundMessage` (dedup) ← يستدعي `ParsingModule` ← عند النجاح يسلّم لـ `DistributionModule` الذي (حسب `TenantSettings.autoSend`) إمّا يوزّع فوراً أو يُنشئ `PendingApproval` عبر `ApprovalsModule`.
+
+---
+
+## 8. تقسيم Features في Flutter
+
+| Feature | الشاشات الأساسية | الحالة (Riverpod) | UseCases بارزة |
+|---------|------------------|-------------------|-----------------|
+| **auth** | دخول، تغيير كلمة المرور | authProvider (مصادقة/جلسة) | Login, Refresh, Logout, GetMe |
+| **dashboard** | الرئيسية (حالة الخدمة + عدّادات) | dashboardProvider | GetCardStats, ToggleService |
+| **cards** | قائمة الكروت، إضافة جماعية، استخراج AI | cardsProvider (Async) | ListCards, BulkAddCards, ExtractCards, DeleteCard |
+| **categories** | إدارة الفئات | categoriesProvider | List/Add/DeleteCategory |
+| **approvals** | التفويضات المعلّقة (badge) | approvalsProvider | ListPending, Approve, Reject, EditPhone |
+| **customers** | مطابقات العملاء | mappingsProvider | List/Add/Update/DeleteMapping |
+| **reports** | إيداعات/معاملات/إحصاءات/تصدير | reportsProvider | ListDeposits, ListTransactions, ExportCsv, GetSummary |
+| **wallets** | تفعيل/تعطيل المحافظ | walletsProvider | GetWallets, ToggleWallet |
+| **settings** | القوالب/المظهر/الأجهزة/كلمة المرور | settingsProvider | GetSettings, UpdateSettings, ManageTemplates, ManageDevices |
+
+- التنقل عبر **GoRouter** مع `redirect` يفرض المصادقة (يحوّل غير المسجّل لشاشة الدخول).
+- التبويبات السفلية تطابق التجربة الحالية (رئيسية/كروت/تفويضات/تقارير/إعدادات) مع badge للتفويضات.
+
+---
+
+## 9. تدفق البيانات بين Flutter والـ Backend وقاعدة البيانات
+
+### 9.1 تدفق المعالجة التلقائية (القلب التشغيلي)
+```
+محفظة → SMS → [SMS Agent] → POST /ingestion/sms (Device Token)
+   → IngestionService: إنشاء InboundMessage + فحص dedupHash (idempotent)
+   → ParsingService: استخراج {amount, identifier, walletId, isAccountCode}
+   → فحص serviceEnabled + tenantWalletConfig.isEnabled
+   → تحديد المستلم: CustomerMapping → defaultAccountPhone → identifier
+   → إذا autoSend:
+        DistributionService (داخل Transaction واحدة):
+          reserve أول Card متاح بالفئة (status=RESERVED)
+          → إرسال (بوابة سحابية أو أمر outbox للـ Agent)
+          → Card.status=USED + إنشاء Deposit(COMPLETED) + Transaction(SUCCESS)
+        إن نفد المخزون: Deposit(FAILED) + Transaction(FAILED) + (إشعار)
+   → إذا يدوي: Deposit(PENDING) + PendingApproval(PENDING) + Notification
+```
+
+### 9.2 تدفق إجراءات المشغّل من تطبيق Flutter
+```
+شاشة (Presentation) → Provider(Riverpod) → UseCase(Domain)
+   → Repository(Data) → DataSource(Dio + JWT) → NestJS Controller
+   → Service → Prisma → PostgreSQL
+   ← استجابة موحّدة ← تحويل DTO→Entity ← تحديث الحالة ← إعادة بناء الواجهة
+```
+
+### 9.3 المزامنة وآنية التحديث
+- تحديث القوائم عبر **سحب/تحديث (pull) + Riverpod invalidation** بعد كل إجراء.
+- لإشعارات اللحظة (تفويض جديد/توزيع ناجح): **FCM** أو قناة Realtime (مرحلة لاحقة) — بديل عن `NotificationBus` المحلي القديم.
+
+---
+
+## 10. خطة التنفيذ على مراحل حتى الإنتاج
+
+| المرحلة | المحتوى | المخرَج |
+|---------|---------|---------|
+| **المرحلة 0 — الأساس** | تثبيت قرارات الفجوة (مسار الإرسال/التعدد)، إعداد المستودع، Docker، CI، اتفاقيات الكود | بيئة تطوير جاهزة |
+| **المرحلة 1 — قاعدة البيانات** | تصميم Prisma schema الكامل + Migrations + Seed + مراجعة ERD | قاعدة بيانات مُرحَّلة |
+| **المرحلة 2 — Auth & Tenancy** | JWT (access/refresh) + RBAC + عزل المستأجرين + Devices/Tokens | مصادقة آمنة عاملة |
+| **المرحلة 3 — المخزون** | Cards/Categories/Wallets + الإضافة الجماعية + العدّادات | إدارة مخزون كاملة عبر API |
+| **المرحلة 4 — محرّك التحليل** | ParsingModule (أنماط المحافظ الستّة + قوالب + AI) + اختبارات وحدة مكثّفة | محرّك تحليل موثّق ومختبَر |
+| **المرحلة 5 — الالتقاط والتوزيع** | SMS Agent + Ingestion (Idempotency) + Distribution الذرّي + Deposits/Transactions | المسار التشغيلي end‑to‑end |
+| **المرحلة 6 — التفويضات والمطابقات** | Approvals + CustomerMappings + الوضع اليدوي | دورة الموافقة كاملة |
+| **المرحلة 7 — التقارير والإعدادات** | Reports + CSV + Templates + Settings | لوحة تقارير وإعدادات |
+| **المرحلة 8 — تطبيق Flutter** | بناء الميزات التسع تباعاً فوق الـ API الجاهز | تطبيق إدارة متكامل |
+| **المرحلة 9 — التحصين** | اختبارات e2e، تحميل، تدقيق أمني، مراقبة/سجلّات، نسخ احتياطي | جاهزية إنتاج |
+| **المرحلة 10 — النشر** | نشر على Railway (Prod)، متغيرات بيئة، نطاقات، مراقبة | إطلاق إنتاجي |
+
+> كل مرحلة تبدأ فقط بعد موافقتك على سابقتها. لا يُكتب أي كود قبل اعتماد هذه الوثيقة والانتقال الصريح للمرحلة 0/1.
+
+---
+
+## 11. معايير الأمان والأداء وقابلية التوسع
+
+### 11.1 الأمان
+- **JWT** قصير العمر + Refresh مع إبطال (يحل محل السيريال الثابت المضمّن).
+- **RBAC** (OWNER/ADMIN/OPERATOR) عبر `RolesGuard`.
+- **عزل المستأجرين** على مستوى كل استعلام (`TenantGuard` + شرط `tenantId`).
+- **تجزئة كلمات المرور** بـ bcrypt/argon2، **Device Tokens** مجزّأة في القاعدة.
+- **تشفير الأسرار** (مفتاح AI) و**flutter_secure_storage** للتوكنات على الجهاز.
+- **التحقق من المدخلات** عبر DTO + class‑validator، **Rate Limiting** (throttler) على auth/ingestion.
+- **HTTPS** إلزامي، رؤوس أمان (helmet)، CORS مضبوط، تسجيل تدقيق للعمليات الحسّاسة.
+- **Idempotency** على ingestion لمنع التوزيع المزدوج عند تكرار الرسالة.
+
+### 11.2 الأداء
+- **فهارس** مدروسة على (tenantId, categoryId, status) و(tenantId, createdAt) للتقارير.
+- **Pagination** إلزامي لكل القوائم، استعلامات Prisma محدّدة الحقول.
+- **Connection pooling** (PgBouncer/Prisma) على Railway.
+- **طوابير (BullMQ)** اختيارية لإرسال SMS وإعادة المحاولة دون حجب الطلب.
+- **تخزين مؤقت** للبيانات شبه الثابتة (كتالوج المحافظ/الفئات) عند الحاجة.
+- على Flutter: حالات async مع caching عبر Riverpod وتقليل إعادة البناء.
+
+### 11.3 قابلية التوسع
+- **API عديم الحالة** → توسّع أفقي خلف موازن أحمال.
+- **تعدد المستأجرين** مدمج → دعم محلات/فروع متعددة دون تغيير معماري.
+- فصل **Ingestion/Distribution** يسمح بترقية كل مسار مستقلاً، وإدخال طوابير لاحقاً بسلاسة.
+- ترحيلات Prisma الحتمية تتيح تطوير المخطط بأمان دون فقدان بيانات (إنهاء خطر destructive migration).
+
+---
+
+## 12. أفضل الممارسات الملتزَم بها أثناء التطوير
+
+- **Clean Architecture + SOLID + DRY** (إزالة التكرار الثلاثي للمنطق القديم بتمركزه في الخادم).
+- **Feature‑First** في Flutter، و**Module‑per‑domain** في NestJS.
+- **Type Safety** شامل (Prisma + Dart/freezed) و**DTO/Validation** على كل مدخل.
+- **معالجة أخطاء موحّدة** (Failures في Flutter، ExceptionFilter في NestJS) واستجابات API متسقة.
+- **اختبارات**: تركيز على وحدات التحليل/التوزيع (الأعلى خطراً) + e2e للمسارات الحرجة.
+- **Conventional Commits + مراجعة كود + CI** (lint/test/build) قبل الدمج.
+- **توثيق حيّ** عبر Swagger/OpenAPI + README لكل خدمة.
+- **متغيرات البيئة** عبر ConfigModule مع تحقق عند الإقلاع (لا أسرار في الكود — معالجة لنقطة ضعف السيريال المضمّن).
+- **سجلّات ومراقبة** (Pino + معرّف ارتباط للطلب) وتنبيهات على الأخطاء.
+- **Database Migrations فقط** (لا تعديل يدوي للمخطط) ونسخ احتياطي دوري.
+
+---
+
+## 13. الخطوة التالية (بانتظار موافقتك)
+
+قبل بدء التنفيذ، أحتاج حسم بعض القرارات (سأطرحها كأسئلة موجّهة عند موافقتك):
+1. **مسار إرسال الكارت للعميل:** بوابة SMS سحابية من الخادم، أم إعادة الأمر إلى SMS Agent عبر شريحة الجهاز؟
+2. **نطاق التعدد:** مستأجر واحد الآن مع تجهيز التعدد، أم تفعيل تعدد المحلات/الفروع فوراً؟
+3. **منصة الواجهة:** Flutter فقط، أم لوحة ويب إدارية لاحقاً أيضاً؟
+4. **تحليل AI:** الإبقاء على Gemini لاستخراج الكروت، أم استبداله/إلغاؤه؟
+
+> **لن أنشئ أي مشروع أو أكتب أي كود قبل موافقتك الصريحة على هذه الوثيقة وتحديد إجابات قرارات الفجوة.**
