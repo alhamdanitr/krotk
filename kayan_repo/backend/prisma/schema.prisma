@@ -330,6 +330,20 @@ model DistributorExpense {
   @@map("distributor_expenses")
 }
 
+model DistributorCapital {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  type           String   @db.VarChar(30) // injection (إيداع), withdrawal (سحب)
+  amount         Int
+  description    String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+  
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@index([tenantId, createdAt])
+  @@map("distributor_capital")
+}
+
 // -----------------------------------------------------------------------------
 // LEGACY SERIAL ADMIN PANEL (نظام السيريالات القديم المستخدم من serial-admin app
 // وتطبيق الكروت الحالي) — نُقل من ملف JSON محلي إلى PostgreSQL هنا لمنع فقدان
