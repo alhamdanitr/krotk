@@ -18,8 +18,21 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Security Keys Configuration
-const JWT_SECRET = process.env.JWT_SECRET || "KayanSoftSuperSecretJWTKey2026Encryption";
-const HMAC_SECRET = process.env.HMAC_SECRET || "KayanSoftSecurityHMACKey2026Master";
+// لا توجد قيم افتراضية احتياطية هنا عمدًا: هذا المستودع عام على GitHub، وأي قيمة
+// افتراضية مكتوبة هنا ستكون معروفة لأي شخص يقرأ الكود. السيرفر يرفض الإقلاع
+// إن لم يتم تعيين المتغيرات فعليًا في بيئة التشغيل (Render environment variables).
+const JWT_SECRET = process.env.JWT_SECRET;
+const HMAC_SECRET = process.env.HMAC_SECRET;
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!JWT_SECRET || !HMAC_SECRET || !ADMIN_USERNAME || !ADMIN_PASSWORD) {
+    console.error(
+        "❌ فشل الإقلاع: يجب تعيين JWT_SECRET, HMAC_SECRET, ADMIN_USERNAME, ADMIN_PASSWORD " +
+        "كمتغيرات بيئة (Environment Variables) على السيرفر قبل التشغيل. راجع .env.example."
+    );
+    process.exit(1);
+}
 
 // Middleware
 app.use(cors());
@@ -348,14 +361,13 @@ app.post('/api/v1/serial/validate', verifyRequestSignature, (req, res) => {
 // Admin login to get JWT Token
 app.post('/api/v1/admin/login', (req, res) => {
     const { username, password } = req.body;
-    
-    // Highly secure owner credentials matching user intent
-    if (username === "owner" && password === "KayanKurotek2026!") {
+
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
         const token = jwt.sign({ username, role: "super_admin" }, JWT_SECRET, { expiresIn: '24h' });
         addLog(req.ip, "/api/v1/admin/login", 200, `Admin logged in successfully.`);
         return res.json({ success: true, token });
     }
-    
+
     addLog(req.ip, "/api/v1/admin/login", 401, `Failed admin login attempt: Username: ${username}`);
     return res.status(401).json({ success: false, message: "خطأ في اسم المستخدم أو كلمة المرور!" });
 });
@@ -367,10 +379,6 @@ function authenticateAdmin(req, res, next) {
         return res.status(401).json({ success: false, message: "غير مصرح به: الرجاء تسجيل الدخول أولاً!" });
     }
     const token = authHeader.split(' ')[1];
-    if (token === 'relaxed_access_authorized_by_owner') {
-        req.admin = { username: "owner", role: "super_admin" };
-        return next();
-    }
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
         req.admin = decoded;
@@ -504,8 +512,8 @@ function gatewayAuth(req, res, next) {
     const user = auth[0];
     const pass = auth[1];
 
-    // Highly secure owner credentials
-    if (user === 'owner' && pass === 'KayanKurotek2026!') {
+    // Owner credentials come from environment variables (see startup check above)
+    if (user === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
         return next();
     } else {
         res.setHeader('WWW-Authenticate', 'Basic realm="Secure Serial Dashboard"');
