@@ -12,7 +12,7 @@ services:
         fromService:
           type: web
           name: kurotek-backend
-          envVar: RENDER_EXTERNAL_URL
+          envVarKey: RENDER_EXTERNAL_URL
 
   # 2. السيرفر والباك إند (Backend - NestJS)
   - type: web
