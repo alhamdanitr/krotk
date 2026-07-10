@@ -10,7 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 // إعادة الإرسال للعميل.
 // ---------------------------------------------------------------------------
 
-interface ClientJson {
+export interface ClientJson {
   id: number;
   name: string;
   network_name: string;
@@ -18,7 +18,7 @@ interface ClientJson {
   notes: string | null;
 }
 
-interface SerialJson {
+export interface SerialJson {
   id: number;
   client_id: number;
   serial_key: string;
