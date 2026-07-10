@@ -42,9 +42,23 @@ export class SerialManagerService implements OnModuleInit {
   private serials: Serial[] = [];
   private logs: SecurityLog[] = [];
 
-  private readonly HMAC_SECRET = 'KayanSoftSecurityHMACKey2026Master';
-  private readonly JWT_SECRET = 'KayanSoftSuperJWTSecretKey2026Secure';
-  private readonly OFFLINE_SALT = 'KayanSoftSecureSalt2026';
+  // لا قيم افتراضية هنا: هذا المستودع عام على GitHub، وأي سر مكتوب صراحة بالكود
+  // يصبح معروفًا لأي شخص. نفس القيم المستخدمة في server/api_server.js يجب أن
+  // تُضبط هنا أيضًا عبر متغيرات البيئة إذا أردنا التوافق بين السيرفرين.
+  private readonly HMAC_SECRET = SerialManagerService.requireEnv('HMAC_SECRET');
+  private readonly JWT_SECRET = SerialManagerService.requireEnv('JWT_SECRET');
+  private readonly OFFLINE_SALT = SerialManagerService.requireEnv('SERIAL_OFFLINE_SALT');
+
+  private static requireEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) {
+      throw new Error(
+        `${name} environment variable is not set. Refusing to start with a ` +
+        `hardcoded fallback secret, since this repository is public.`
+      );
+    }
+    return value;
+  }
 
   onModuleInit() {
     this.loadDatabase();
