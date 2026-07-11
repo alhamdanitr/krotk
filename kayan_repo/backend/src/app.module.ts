@@ -58,6 +58,7 @@ export class AppModule {
     consumer
       .apply(HmacMiddleware)
       .exclude(
+        { path: '', method: RequestMethod.ALL },
         { path: 'auth/(.*)', method: RequestMethod.ALL },
         { path: 'health', method: RequestMethod.ALL },
         { path: 'api/v1/serial/(.*)', method: RequestMethod.ALL },
