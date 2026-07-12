@@ -1,6 +1,0 @@
-{
-  "name": "كروتك",
-  "description": "تطبيق إدارة وتوزيع كروت الشحن الإلكترونية تلقائياً عبر قراءة رسائل SMS لمحفظة جيب ومحفظة جوالي.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
